@@ -20,7 +20,7 @@ latency and high throughput PCIe devices from the userspace.
 %setup -q
 
 %build
-%configure --prefix=%{inst_prefix}
+./configure --prefix=$RPM_BUILD_ROOT/%{_prefix}
 make
 
 %install
@@ -32,7 +32,7 @@ make install DESTDIR=$RPM_BUILD_ROOT/%{inst_prefix}/
 
 %files
 %defattr(-,root,root,-)
-%{inst_prefix}/bin/*
-%{inst_prefix}/include/*
-%{inst_prefix}/lib/*
-%{inst_prefix}/share/*
+%{_bindir}/*
+%{_prefix}/lib/*
+%{_includedir}/*
+%{_datarootdir}/*
