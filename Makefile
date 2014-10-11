@@ -35,7 +35,8 @@ rpm: tarball
 	./package/rpm/configure --version --prefix=$(IPATH)
 	cp pda-`cat VERSION`.tar.gz package/rpm/
 	make -C package/rpm/
-	cp ${HOME}/rpmbuild/RPMS/x86_64/pda-*.rpm .
+	make -C patches/linux_uio
+	cp ${HOME}/rpmbuild/RPMS/x86_64/pda*.rpm .
 
 tarball: mrproper
 	rm -rf pda-`cat VERSION`.tar.gz

@@ -27,6 +27,9 @@ make
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT/%{inst_prefix}/
 
+%post
+/sbin/ldconfig
+
 %files
 %defattr(-,root,root,-)
 %{inst_prefix}/bin/*

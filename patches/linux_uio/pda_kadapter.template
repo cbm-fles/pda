@@ -1,5 +1,5 @@
 Summary:            Kernel adapter for the PDA library
-Name:               pda_kadapter
+Name:               pda_kadapter-%(uname -r)
 Version:            99.99.99
 Release:            0
 License:            BSD
