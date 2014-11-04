@@ -1,7 +1,7 @@
 %define inst_prefix /opt
 
 Summary:            A library to access PCIe devices from userspace
-Name:               pda
+Name:               libpda
 Version:            99.99.99
 Release:            0
 License:            BSD
