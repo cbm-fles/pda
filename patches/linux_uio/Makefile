@@ -13,17 +13,17 @@ prepare: clean
 
 install: all
 	cp      uio_pci_dma.ko /lib/modules/$(shell uname -r)/kernel/drivers/uio/
-	install pda_sysfs.sh   /etc/
-	cp      99-pda.rules   /etc/udev/rules.d/	
+	#install pda_sysfs.sh   /etc/
+	#cp      99-pda.rules   /etc/udev/rules.d/	
 	depmod -a
 
 rpminstall: all
 	mkdir -p             $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
 	cp uio_pci_dma.ko    $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
-	mkdir -p             $(INSTALL_MOD_PATH)/etc/
-	install pda_sysfs.sh $(INSTALL_MOD_PATH)/etc/
-	mkdir -p             $(INSTALL_MOD_PATH)/etc/udev/rules.d/
-	cp 99-pda.rules      $(INSTALL_MOD_PATH)/etc/udev/rules.d/
+	#mkdir -p             $(INSTALL_MOD_PATH)/etc/
+	#install pda_sysfs.sh $(INSTALL_MOD_PATH)/etc/
+	#mkdir -p             $(INSTALL_MOD_PATH)/etc/udev/rules.d/
+	#cp 99-pda.rules      $(INSTALL_MOD_PATH)/etc/udev/rules.d/
 
 rpm: pack
 	./configure --version
