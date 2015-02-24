@@ -1,5 +1,5 @@
 DEBUG=true
-IPATH=/opt/pda
+IPATH=/usr
 
 all:
 	find . -iname 'build_*' -exec make -C {} \;
@@ -35,8 +35,8 @@ rpm: tarball
 	./package/rpm/configure --version --prefix=$(IPATH)
 	cp libpda-`cat VERSION`.tar.gz package/rpm/
 	make -C package/rpm/
-	make -C patches/linux_uio rpm
 	cp ${HOME}/rpmbuild/RPMS/x86_64/libpda-`cat VERSION`*.rpm .
+	make -C patches/linux_uio rpm
 	cp ${HOME}/rpmbuild/RPMS/x86_64/pda_kadapter-`uname -r`*.rpm .
 
 tarball: mrproper
@@ -44,7 +44,7 @@ tarball: mrproper
 	tar -cf libpda-`cat VERSION`.tar *
 	mkdir dist
 	tar -xf libpda-`cat VERSION`.tar -C dist/
-	rm -rf dist/pda.cbp dist/pda.layout
+	rm -rf dist/libpda.cbp dist/libpda.layout
 	-find ./dist -name '.svn' -exec rm -rf {} \; >> /dev/null
 	rm -rf libpda-`cat VERSION`.tar
 	mv dist libpda-`cat VERSION`
@@ -55,6 +55,7 @@ tarball: mrproper
 mrproper: clean
 	$(MAKE) PATH=$(PWD)/opt/bin/:$(PATH) -C ./test/ clean
 	-rm -rf ./package/rpm/pda.spec
+	-rm -rf patches/linux_uio/pda_kadapter.spec
 	-rm -rf build_*
 	-rm -rf opt
 	-rm -rf dist
@@ -66,6 +67,7 @@ mrproper: clean
 clean:
 	find . -iname 'build_*' -exec make -C {} clean \;
 	rm -rf libpda*.tar.gz libpda*.rpm package/rpm/*.tar.gz
+	rm -rf pda_kadapter*.rpm
 
 count: mrproper
 	wc -l `find . -iname '*.c' && find . -iname '*.h' && find . -iname '*.inc'`	
