@@ -1,4 +1,5 @@
-%define inst_prefix /opt
+%define inst_prefix /usr
+%define debug_package %{nil}
 
 Summary:            A library to access PCIe devices from userspace
 Name:               libpda

@@ -1,3 +1,5 @@
+%define debug_package %{nil}
+
 Summary:            Kernel adapter for the PDA library
 Name:               pda_kadapter-%(uname -r)
 Version:            99.99.99
