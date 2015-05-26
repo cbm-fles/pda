@@ -314,7 +314,6 @@ probe
     dma_device->info.name      = DRIVER_NAME;
     dma_device->info.version   = UIO_PCI_DMA_VERSION;
     dma_device->info.irq       = pci_device->irq;
-    dma_device->info.irq_flags = IRQF_SHARED;
     dma_device->info.handler   = irqhandler;
     dma_device->info.irq_flags = msi_enabled ? 0 : IRQF_SHARED;
 
@@ -481,13 +480,17 @@ remove(struct pci_dev *pci_device)
 }
 
 
+static DEFINE_PCI_DEVICE_TABLE(id_table) = {
+    {PCI_DEVICE(0x10dc, 0x01a0) }, /* C-RORC PCI ID as registered at CERN */
+    { 0, }
+};
 
 static
 struct pci_driver
 driver =
 {
     .name     = DRIVER_NAME,
-    .id_table = NULL,
+    .id_table = id_table,
     .probe    = probe,
     .remove   = remove
 };
