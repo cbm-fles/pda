@@ -1,0 +1,12 @@
+include arch.mk
+include gen.mk
+
+LDNAME = libpda
+SRCS   = $(wildcard src/*.c)
+OBJS   = $(patsubst src/%.c,src/%.o,$(SRCS))
+LARCH  = $(patsubst src/%.c,%.lo,$(SRCS))
+
+objects: $(OBJS)
+
+%.o: %.c
+	-splint -warnposix -preproc +trytorecover -unrecog $(INCLUDE) $<

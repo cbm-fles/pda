@@ -1,0 +1,9 @@
+This folder adds support for integrating PDA into build environments.
+
+
+== CMAKE ==
+
+- Copy the CMakePda.txt to the folder where the CMakeLists.txt is located
+- set( REQUIRED_PDA_VERSION "XX:XX:XX" ) 
+- include(CMakePda.txt)
+

@@ -1,0 +1,26 @@
+BUILD_DIRS="                    \
+src                             \
+include                         \
+include/pda                     \
+"
+
+BUILD_FILES="                   \
+src/device_operator.c           \
+src/pci.c                       \
+src/bar.c                       \
+src/dma_buffer.c                \
+src/debug.c                     \
+src/pciconfigspace.h            \
+src/definitions.h               \
+src/pci_int.h                   \
+src/bar_int.h                   \
+src/dma_buffer_int.h            \
+\
+include/pda.h                   \
+include/pda/bar.h               \
+include/pda/pci.h               \
+include/pda/device_operator.h   \
+include/pda/defines.h           \
+include/pda/dma_buffer.h        \
+include/pda/debug.h             \
+"

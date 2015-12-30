@@ -1,0 +1,3 @@
+SUBSYSTEM=="uio", ACTION=="add", RUN+="/bin/bash /etc/pda_sysfs.sh"
+SUBSYSTEM=="dma", ACTION=="add", RUN+="/bin/bash /etc/pda_sysfs.sh"
+SUBSYSTEM=="drivers", ACTION=="add", RUN+="/bin/bash /etc/pda_sysfs.sh"

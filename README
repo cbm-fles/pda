@@ -1,0 +1,209 @@
+1__Downloading
+
+https://compeng.uni-frankfurt.de/index.php?id=173
+
+
+2__Installation
+
+Requirements for Linux:
+
+- Installed GCC
+- Installed libtool
+- libpci and related headers (comes with pciutils)
+- libkmod and related headers 
+- libnuma and related headers (comes with numactl)
+- Doxygen (if the documentation is needed)
+
+Type:
+./configure --help
+./configure <options>
+make
+make install
+
+cd patches/<operating system>/
+make install
+
+
+3__Documentation
+The PDA is documented with doxygen. Therefore Doxygen must be installed to get 
+a full reference manual (tested with version 1.8.4).
+
+Type:
+make doc
+
+Look into the subfolder doxygen/
+
+
+4__Compatibility
+
+- Linux between 2.6.29 and 3.19
+
+
+5__Known Issues
+
+- Older versions of libpci leak memory. It is therefore recommended to update
+libpci to version 3.3.1 or newer. Otherwise the device description string might
+not be available.
+
+
+6__Version_Log:
+
+Current Version
+
+xx.x.x * SVN rev xxxx
+
+_______________________________________________________________________________
+
+11.0.7 * SVN rev 1611
+       * Added feature for disabling device enumeration
+       * Added feature for using DMA buffer as Posix-SHM replacement with low
+         overhead
+       * Added feature for listing allocated DMA buffers
+       * Removed aborts
+       * Changed license to three clause BSD
+
+10.2.6 * SVN rev 1506
+       * Maintenance release
+       * Bugfixes and optimizations
+       * Added locking for buffer allocation, freeing, and mapping
+       * Added on-demand paging for DMA buffers
+
+10.1.6 * SVN rev 1429
+       * Maintenance release
+       * Fixed wrap mapping bug(s)
+       * Fixed a couple of bugs in error handling
+       * Enhanced valgrind compatibility
+       * Tested support for Linux +3.19
+
+10.0.6 * SVN rev 1396
+       * Added userspace buffer allocation
+       * Removed obsolete DMA buffer direction specifier
+       * Optimized udev scripts
+
+9.1.5 * SVN rev 1310
+      * Fixed race conditions during buffer allocation
+      * Tested support for Linux +3.18
+
+9.0.5 * SVN rev 1292
+      * Added NUMA control support
+      * Completed doxygen documentation
+      * Fixed RPM libtool bug in build flow
+      * Added automatic RPM config
+      * Added --help option to configure script
+      * Tested support for Linux +3.16
+      * Tested support for Linux +3.17
+
+8.1.4 * SVN rev 1214
+      * Added support for MSI interrupting
+      * Added initial support for hotplug (virtual bars)
+
+8.0.4 * SVN rev 1164
+      * Disabled auto vectorization 
+      * Added non SSE based memcpy routines
+      * Added non vectorizable getter and setter functions
+      * Fixed interrupting bug which appeared in conjunction with pthreads
+      * Started Doxygen documentation
+
+8.0.3 * SVN rev 1122
+      * Fixed bug with buffer list handling
+      * Fixed buffer size bug (return actually allocated instead of requested
+        size)
+
+8.0.2 * SVN rev 1071
+      * Added support for max payload size and max read request size
+      * Added PDA debug version ignore for the CMake include
+      * Fixed bug which caused crashing if user permissions were not
+        granted
+      * Tested support for Linux +3.15
+
+7.4.1 * SVN rev 917
+      * Fixed udev "google chrome" bug (udev rule was going wild)
+      * Fixed buffer reallocation bug
+      * Code cleanup of the linux kernel module
+
+7.3.1 * SVN rev 884
+      * Fixed rpmbuild support for kernel module
+      * Fixed support for 64Bit BARs
+      * Added support for executing as non-privileged user
+      * Tested support for Linux +3.14
+
+7.2.1 * SVN rev 865
+      * Rpmbuild support (make rpm) for the uio_pci_dma kernel module
+
+7.1.1 * SVN rev 841
+      * Fixed sysfs path bug
+      * Added rpmbuild capabilities (make rpm) to make dist
+      * Cleaned kernel adapter code
+      * Tested support for Linux +3.13
+
+7.0.1 * SVN rev 678
+      * Fixed page sorting bug
+      * Fixed buffer indexing bug
+      * Fixed support for Linux +3.12
+
+6.1.1 * SVN rev 656
+      * KMOD checking is only activated if libkmod is really installed. Issues 
+        a big fat warning if used without KMOD.
+
+6.0.1 * SVN rev 631
+      * DMA buffer mapping without caching
+      * Checks adapter version
+      * PDA config can return PDA version now
+      * Added separate PDAinit function
+      * Added separate PDAfinalize function
+      * Added function to check that the uses PDA has the right version (even 
+        if it compiles)
+      * PDA-Debug now usable from outside
+      * Bug fixing
+      * Works against Linux +3.9 +3.10
+
+5.0.0 * SVN rev 529
+      * Fixed buffer rediscover
+      * Stabilized wrap mapping
+      * Moved some set and get functions into macros
+      * Revised buffer lookup
+
+4.3.4 * SVN rev 442
+      * Added license header
+
+4.2.4 * SVN rev 433
+      * Enhanced compatibility to Linux 2.6.29 - 3.8
+
+4.1.4 * SVN rev 387
+      * Added strict return code checking
+      * Fixed test cases
+      * Fixed warnings
+
+4.0.4 * SVN rev 365
+      * Added support for buffer wrap mapping ("overmapping"->
+        Linux only)
+
+4.0.3 * SVN rev 340
+      * Added support for DMA (Linux only)
+        * Buffer allocation
+        * Scatter gather lists (with automatic merging)
+
+3.0.2 * SVN rev 117
+      * First tested version with support for:
+        * Basic Address Registers
+        * Interrupts
+
+2.0.0 * SVN rev 106
+      * Bug fixing (version 0.0.0 was broken).
+        * BAR detection used the wrong bits (both libpci
+          and config space)
+        * Error handling prevented correct working in a
+          couple of cases
+        * All macros with arguments where broken (extra
+          bracing was needed)
+      * Added support for 64Bit BARs
+      * Added code beautifier
+      * Added get methods for device query
+      * Added configure checks
+      * Removed UIO device deletion (UIO is persistent
+        now)
+
+0.0.0 * Initial version.
+      * Added basic support for Linux and UIO
+      * Added BAR and IRQ handling
+

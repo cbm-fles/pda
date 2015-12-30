@@ -1,0 +1,36 @@
+Summary:            Kernel adapter for the PDA library
+Name:               pda_kadapter
+Version:            99.99.99
+Release:            0
+License:            BSD
+Group:              System Environment/Base
+Source:             %{name}-%{version}.tar.gz
+URL:                https://compeng.uni-frankfurt.de/index.php?id=173
+ExcludeArch:        s390 s390x
+BuildRoot:          /var/tmp/%{name}-buildroot
+#BuildRequires:      libpci
+
+%define UNAME %(uname -r)
+
+%description
+The Portable Driver Architecture (PDA) is a microdriver API for programming low
+latency and high throughput PCIe device from the userspace.
+
+%prep
+%setup
+
+%build
+make
+
+%install
+make INSTALL_MOD_PATH=$RPM_BUILD_ROOT rpminstall
+
+%files
+%defattr(644,root,root,755)
+/lib/modules/%{UNAME}/kernel/drivers/uio/uio_pci_dma.ko
+/etc/pda_sysfs.sh
+/etc/udev/rules.d/99-pda.rules   
+
+%post
+/sbin/depmod -a
+chmod u+x /etc/pda_sysfs.sh

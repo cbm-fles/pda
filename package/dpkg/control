@@ -1,0 +1,10 @@
+Package: pda
+Version: 99.99.99
+Section: misc
+Priority: extra
+Architecture: all
+Depends:
+Installed-Size: 8
+Maintainer: Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+Homepage: https://compeng.uni-frankfurt.de/index.php?id=143
+Description: 

@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Copyright (c) 2015, Dominic Eschweiler
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+# notice, this list of conditions and the following disclaimer in the
+# documentation and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+source $0.inc
+
+PATHNAME=`dirname $0`
+FILENAME=`basename $0` 
+
+SUBPATH=$PATHNAME
+if [ $PATHNAME == "." ]
+then
+    SUBPATH="../"
+else
+    SUBPATH=`dirname $PATHNAME`
+fi
+
+LD_LIBRARY_PATH="$SUBPATH/lib/"
+LD_PATH="$SUBPATH/lib/libpda.so"
+SD_PATH="$SUBPATH/lib/libpda.a"
+INCLUDE_PATH="$SUBPATH/include/"
+BUILD_INCLUDE_PATH="$SUBPATH/share/pda/pda_build.mk"
+
+HELP_MESSAGE="\n
+$FILENAME --ldlibrarypath  : Get the LD_LIBRARY_PATH for dynamic linking    \n
+$FILENAME --ldpath         : Get the path of the dynamic library            \n
+$FILENAME --sdpath         : Get the path of the static library             \n
+$FILENAME --cc             : Get the compiler                               \n
+$FILENAME --ccopts         : Get the compiler options                       \n
+$FILENAME --ld             : Get the linker options                         \n
+$FILENAME --include        : Get the include directory path                 \n
+$FILENAME --build          : Get the make include file                      \n
+$FILENAME --version        : Get the PDA library version (for build checks) \n
+"
+
+if [ -z "$1" ]
+then
+    echo -e $HELP_MESSAGE
+    exit 0
+fi
+
+for ARG in $@
+do
+    if [ $ARG == "--help" ]
+    then
+	echo -e $HELP_MESSAGE
+        exit 0
+    fi
+
+    case $ARG in
+    "--ldlibrarypath" )
+        echo -n "$LD_LIBRARY_PATH"
+    ;;
+
+    "--ldpath"        )
+        echo -n "$LD_PATH "
+    ;;
+
+    "--sdpath"        )
+        echo -n "$SD_PATH "
+    ;;
+
+    "--cc"            )
+        echo -n "$CC "
+    ;;
+
+    "--ccopts"        )
+        echo -n "$CFLAGS "
+    ;;
+
+    "--ld"            )
+        echo -n "$LDFLAGS "
+    ;;
+
+    "--include"       )
+        echo -n "$INCLUDE_PATH "
+    ;;
+    
+    "--build"         )
+        echo -n "$BUILD_INCLUDE_PATH"
+    ;;
+
+    "--version"       )
+        echo -n "$VERSION"
+    ;;
+
+    *                 )
+        echo "Unknown parameter $ARG"
+        echo -e $HELP_MESSAGE
+        exit 0
+    ;;
+esac
+done

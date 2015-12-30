@@ -1,0 +1,14 @@
+obj-m := interrupt.o
+
+#KDIR := /lib/modules/$(shell uname -r)/build
+PWD  := $(shell pwd)
+
+all:
+	make -C $(KDIR) M=$(PWD) modules
+
+clean:
+	make -C $(KDIR) M=$(PWD) clean
+
+install: all
+	cp interrupt.ko /lib/modules/$(shell uname -r)/kernel/drivers/uio/
+	depmod -a

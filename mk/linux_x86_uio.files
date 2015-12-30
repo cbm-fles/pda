@@ -1,0 +1,10 @@
+ARCH_FILES="                             \
+arch/linux_x86_uio/device_operator_inc.c \
+arch/linux_x86_uio/bar_inc.c             \
+arch/linux_x86_uio/pci_inc.c             \
+arch/linux_x86_uio/dma_buffer_inc.c      \
+"
+
+ARCH_EXTERNALS="
+patches/linux_uio/uio_pci_dma.h          \
+"

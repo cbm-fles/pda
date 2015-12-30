@@ -1,0 +1,38 @@
+#!/bin/bash
+
+PATHNAME=`dirname $0`
+cd  $PATHNAME
+echo "PARAMETERS : "
+
+cp pda_kadapter.template pda_kadapter.tmp
+
+set_version()
+{
+    VERSION=`cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2`
+    cat pda_kadapter.tmp |                                                         \
+    sed 's|^Version:            99.99.99|Version:            '$VERSION'|' \
+    > pda_kadapter.spec.tmp
+
+    mv pda_kadapter.spec.tmp pda_kadapter.tmp
+    echo ": $VERSION"
+}
+
+for PARAMETER in $@
+do
+    echo -n "$PARAMETER "
+    PARAM=`echo $PARAMETER | cut -f1 -d=`
+    VALUE=`echo $PARAMETER | cut -f2 -d=`
+    case $PARAM in
+        "--version" )
+            set_version
+            continue
+        ;;
+
+        *          )
+            echo "Unknown parameter $PARAMETER!"
+            exit -1
+        ;;
+    esac
+done
+
+mv pda_kadapter.tmp pda_kadapter.spec

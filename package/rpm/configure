@@ -1,0 +1,71 @@
+#!/bin/bash
+
+PATHNAME=`dirname $0`
+cd  $PATHNAME
+echo "PARAMETERS : "
+
+cp pda.template pda.tmp
+
+set_prefix_dirt()
+{
+    PREFIX=$1
+
+    echo "";
+
+    case "$PREFIX" in
+        /*)
+            echo -n ""
+        ;;
+        *)
+            echo "Relative path given - Aborting!"
+            exit -1;
+        ;;
+    esac
+
+    if [ ! -d "$PREFIX" ]
+    then
+        echo "Prefix directory does not exist!"
+    fi
+
+    cat pda.tmp |                                                      \
+    sed 's|^%define inst_prefix /opt|%define inst_prefix '$PREFIX'|'   \
+    > pda.spec.tmp
+
+    mv pda.spec.tmp pda.tmp
+}
+
+set_version()
+{
+    VERSION=`cat ../../VERSION`
+    cat pda.tmp |                                                         \
+    sed 's|^Version:            99.99.99|Version:            '$VERSION'|' \
+    > pda.spec.tmp
+
+    mv pda.spec.tmp pda.tmp
+    echo ": $VERSION"
+}
+
+for PARAMETER in $@
+do
+    echo -n "$PARAMETER "
+    PARAM=`echo $PARAMETER | cut -f1 -d=`
+    VALUE=`echo $PARAMETER | cut -f2 -d=`
+    case $PARAM in
+        "--prefix" )
+            set_prefix_dirt $VALUE
+            continue
+        ;;
+
+        "--version" )
+            set_version
+            continue
+        ;;
+
+        *          )
+            echo "Unknown parameter $PARAMETER!"
+            exit -1
+        ;;
+    esac
+done
+
+mv pda.tmp pda.spec

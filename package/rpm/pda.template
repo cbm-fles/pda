@@ -1,0 +1,35 @@
+%define inst_prefix /opt
+
+Summary:            A library to access PCIe devices from userspace
+Name:               pda
+Version:            99.99.99
+Release:            0
+License:            BSD
+Group:              System Environment/Base
+Source:             %{name}-%{version}.tar.gz
+URL:                https://compeng.uni-frankfurt.de/index.php?id=173
+ExcludeArch:        s390 s390x
+BuildRoot:          %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Prefix:             %{inst_prefix}
+
+%description
+The Portable Driver Architecture (PDA) is a microdriver API for programming low
+latency and high throughput PCIe devices from the userspace.
+
+%prep
+%setup -q
+
+%build
+%configure --prefix=%{inst_prefix}
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT/%{inst_prefix}/
+
+%files
+%defattr(-,root,root,-)
+%{inst_prefix}/bin/*
+%{inst_prefix}/include/*
+%{inst_prefix}/lib/*
+%{inst_prefix}/share/*
