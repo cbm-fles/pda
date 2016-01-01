@@ -48,12 +48,6 @@ not be available.
 
 6__Version_Log:
 
-Current Version
-
-xx.x.x * SVN rev xxxx
-
-_______________________________________________________________________________
-
 11.0.7 * SVN rev 1611
        * Added feature for disabling device enumeration
        * Added feature for using DMA buffer as Posix-SHM replacement with low
