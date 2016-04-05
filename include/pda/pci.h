@@ -105,6 +105,24 @@ PciDevice_new
 );
 
 /**
+ * PciDevice destructor
+ *
+ * Don't call if device belongs to a DeviceOperator!
+ * @param  [in] device
+ *              Device object that has to be destroyed.
+ * @param  [in] delete_persistant
+ *              Flag that determines whether the allocated DMA buffers have to stay
+ *              in the system persistantly or not.
+ * @return PDA_SUCCESS if no error happened, something different if an error happened.
+ */
+PdaDebugReturnCode
+PciDevice_delete
+(
+    PciDevice *device,
+    uint8_t    persistant
+);
+
+/**
  * Register an Interrupt Service Routine (ISR).
  * @param  [in] device
  *         Pointer to the device object.
