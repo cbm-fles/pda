@@ -233,8 +233,18 @@ PciDevice_new_op
 {
     DEBUG_PRINTF(PDADEBUG_ENTER, "");
     extern char uio_sysfs_dir[PDA_STRING_LIMIT];
+    PciDevice *device = NULL;
 
-    PciDevice *device = PciDevice_new_int();
+    /** Make sure requested device is owend by the driver **/
+    DEBUG_PRINTF(PDADEBUG_VALUE, "Searching device %s/%s\n", uio_sysfs_dir, uio_sysfs_entry);
+    char file_path[PDA_STRING_LIMIT];
+    snprintf(file_path, PDA_STRING_LIMIT, "%s/%s",
+             uio_sysfs_dir, uio_sysfs_entry);
+    if (access(file_path, F_OK) != 0 )
+    { ERROR_EXIT( ENODEV, exit, "No such device owned by driver!\n" ); }
+
+    /** Initialize device **/
+    device = PciDevice_new_int();
     if(device == NULL)
     { ERROR_EXIT( ENODEV, exit, "Memory allocation failed!\n" ); }
 
