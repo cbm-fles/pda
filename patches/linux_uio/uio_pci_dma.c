@@ -51,7 +51,7 @@
 #include <linux/sched.h>
 #include <linux/smp.h>
 #include <asm/cacheflush.h>
-
+#include <linux/vmalloc.h>
 
 
 #pragma GCC diagnostic pop
