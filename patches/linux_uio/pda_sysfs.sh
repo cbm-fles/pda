@@ -17,6 +17,9 @@ chmod -R gu+r+w-x "$1"/bar* "$1"/resource* "$1"/config' $UIO_GROUP {} \;
 find -L $UIO_PATH -maxdepth 1 -iname "*:*:*.*" -exec bash -c          \
 'chmod -R o-r-w-x "$1"/bar* "$1"/resource* "$1"/config' $UIO_GROUP {} \;
 
+find -L $UIO_PATH -maxdepth 1 -iname "*:*:*.*" -exec bash -c          \
+'chmod -R 444 "$1"/resource' $UIO_GROUP {} \;
+
 chown root:$UIO_GROUP /dev/uio*
 chmod gu+r+w          /dev/uio*
 
