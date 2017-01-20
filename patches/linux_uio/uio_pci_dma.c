@@ -1068,10 +1068,14 @@ page_fault_handler
     UIO_DEBUG_ENTER();
 
     struct uio_pci_dma_private *priv = vma->vm_private_data;
-    int ret =
-        vm_insert_mixed
-            (vma, (unsigned long)vmf->virtual_address,
-                priv->pfn_list[vmf->pgoff % priv->pages]);
+
+#ifdef PDA_PFN_T_PAGES
+    int ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+                              pfn_to_pfn_t(priv->pfn_list[vmf->pgoff % priv->pages]));
+#else
+    int ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+                              priv->pfn_list[vmf->pgoff % priv->pages]);
+#endif
 
     switch(ret)
     {

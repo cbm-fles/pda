@@ -291,6 +291,27 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 /** Version dependend definitions */
 
 
+/**
+ * Kernel 4.5 introduces a different management of pages by PFN, see
+ * https://lwn.net/Articles/654396/
+ * https://lwn.net/Articles/656197/
+ * https://lwn.net/Articles/672457/
+ * These changes are back-ported at least into CentOS 7.3,
+ * kernel 3.10.0-514.6.1.el7.x86_64
+ **/
+#if defined(RHEL_RELEASE_CODE)
+#if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(7, 3)
+#define PDA_PFN_T_PAGES
+#endif
+#endif
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
+#define PDA_PFN_T_PAGES
+#endif
+
+#ifdef PDA_PFN_T_PAGES
+#include <linux/pfn_t.h>
+#endif
 
 #endif /** __KERNEL__ */
 
