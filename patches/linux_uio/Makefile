@@ -13,15 +13,12 @@ prepare: clean
 
 install: all
 	cp      uio_pci_dma.ko /lib/modules/$(shell uname -r)/kernel/drivers/uio/
-	install pda_sysfs.sh   /etc/
 	cp      99-pda.rules   /etc/udev/rules.d/	
 	depmod -a
 
 rpminstall: all
 	mkdir -p             $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
 	cp uio_pci_dma.ko    $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
-	mkdir -p             $(INSTALL_MOD_PATH)/etc/
-	install pda_sysfs.sh $(INSTALL_MOD_PATH)/etc/
 	mkdir -p             $(INSTALL_MOD_PATH)/etc/udev/rules.d/
 	cp 99-pda.rules      $(INSTALL_MOD_PATH)/etc/udev/rules.d/
 
@@ -35,7 +32,7 @@ rpm: pack
 pack:
 	rm -rf pda_kadapter-${VERSION}
 	mkdir pda_kadapter-${VERSION}
-	cp Makefile Makefile_dma.temp uio_pci_dma.c uio_pci_dma.h pda_sysfs.sh 99-pda.rules pda_kadapter-${VERSION}/
+	cp Makefile Makefile_dma.temp uio_pci_dma.c uio_pci_dma.h 99-pda.rules pda_kadapter-${VERSION}/
 	tar -cf pda_kadapter-${VERSION}.tar pda_kadapter-${VERSION}
 	gzip pda_kadapter-${VERSION}.tar
 	rm -rf pda_kadapter-${VERSION}
