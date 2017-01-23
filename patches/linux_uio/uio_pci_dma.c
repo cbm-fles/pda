@@ -481,7 +481,7 @@ remove(struct pci_dev *pci_device)
 }
 
 
-static DEFINE_PCI_DEVICE_TABLE(id_table) = {
+static const struct pci_device_id id_table[] = {
     {PCI_DEVICE(0x10dc, 0xbeaf) }, /* FLIB intermediate PCI ID */
     { 0, }
 };
