@@ -313,6 +313,14 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 #include <linux/pfn_t.h>
 #endif
 
+/**
+ * Kernel 4.6 introduced six-argument get_user_pages()
+ * https://github.com/torvalds/linux/commit/c12d2da56d0e07d230968ee2305aaa86b93a6832
+ **/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
+#define PDA_SIXARG_GUP
+#endif
+
 #endif /** __KERNEL__ */
 
 #endif /** UIO_PCI_DMA_H */
