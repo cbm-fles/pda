@@ -30,7 +30,7 @@ install: libpda.so gendirs
 	echo "CC=\"$(CC)\" "                              >  $(DESTDIR)/bin/pda-config.inc
 	echo "LDFLAGS=\"$(LDFLAGS)\" "                    >> $(DESTDIR)/bin/pda-config.inc
 	echo "CFLAGS=\"$(CFLAGS)\" "                      >> $(DESTDIR)/bin/pda-config.inc
-	echo "VERSION=\"$(LD_CUR):$(LD_REV):$(LD_AGE)\" " >> $(DESTDIR)/bin/pda-config.inc
+	echo "VERSION=\"$(LD_CUR).$(LD_REV).$(LD_AGE)\" " >> $(DESTDIR)/bin/pda-config.inc
 	@echo -= install shared stuff =-
 	cp -r -L share/pda/* $(DESTDIR)/share/pda
 
