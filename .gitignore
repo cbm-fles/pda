@@ -2,4 +2,4 @@
 /build_linux_x86_uio/
 /doxygen/
 /patches/linux_uio/uio_pci_dma.ko
-
+/build*/
