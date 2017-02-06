@@ -314,7 +314,6 @@ probe
     dma_device->info.name      = DRIVER_NAME;
     dma_device->info.version   = UIO_PCI_DMA_VERSION;
     dma_device->info.irq       = pci_device->irq;
-    dma_device->info.irq_flags = IRQF_SHARED;
     dma_device->info.handler   = irqhandler;
     dma_device->info.irq_flags = msi_enabled ? 0 : IRQF_SHARED;
 
@@ -482,6 +481,7 @@ remove(struct pci_dev *pci_device)
 
 
 static const struct pci_device_id id_table[] = {
+    {PCI_DEVICE(0x10dc, 0x01a0) }, /* C-RORC PCI ID as registered at CERN */
     {PCI_DEVICE(0x10dc, 0xbeaf) }, /* FLIB intermediate PCI ID */
     { 0, }
 };

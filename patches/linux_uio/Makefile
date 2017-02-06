@@ -1,5 +1,5 @@
 KDIR    := /lib/modules/$(shell uname -r)/build
-VERSION := $(shell cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2)
+VERSION := $(shell uname -r)-$(shell cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2)
 
 all: prepare
 	KDIR=$(KDIR) INSTALL_MOD_PATH=$(INSTALL_MOD_PATH) make -C build/
