@@ -482,6 +482,7 @@ remove(struct pci_dev *pci_device)
 
 static DEFINE_PCI_DEVICE_TABLE(id_table) = {
     {PCI_DEVICE(0x10dc, 0x01a0) }, /* C-RORC PCI ID as registered at CERN */
+    {PCI_DEVICE(0x10dc, 0xbeaf) }, /* FLIB intermediate PCI ID */
     { 0, }
 };
 
