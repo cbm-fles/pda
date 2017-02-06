@@ -480,7 +480,7 @@ remove(struct pci_dev *pci_device)
 }
 
 
-static DEFINE_PCI_DEVICE_TABLE(id_table) = {
+static const struct pci_device_id id_table[] = {
     {PCI_DEVICE(0x10dc, 0x01a0) }, /* C-RORC PCI ID as registered at CERN */
     {PCI_DEVICE(0x10dc, 0xbeaf) }, /* FLIB intermediate PCI ID */
     { 0, }
@@ -722,9 +722,15 @@ uio_pci_dma_allocate_user_memory
     #endif
 
     UIO_DEBUG_PRINTF("Get user pages\n");
+#ifdef PDA_SIXARG_GUP
+    int pages_mapped
+        = get_user_pages
+            (priv->start, pages, 1, 0, priv->page_list, NULL);
+#else
     int pages_mapped
         = get_user_pages
             (current, current->mm, priv->start, pages, 1, 0, priv->page_list, NULL);
+#endif
     if(pages_mapped != pages)
     {
         UIO_DEBUG_PRINTF("pages_mapped = %d pages = %d\n", pages_mapped, pages);

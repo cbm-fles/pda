@@ -1,9 +1,11 @@
 /**
  * @author Dominic Eschweiler <dominic@eschweiler.at>
+ * @author Dirk Hutter <hutter@compeng.uni-frankfurt.de>
  *
  * @section LICENSE
  *
  * Copyright (c) 2015, Dominic Eschweiler
+ * Copyright (c) 2017, Dirk Hutter
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -442,21 +444,6 @@ DMABuffer_lockUserBuffer
 {
     DEBUG_PRINTF(PDADEBUG_ENTER, "");
 
-    volatile uint64_t  tmp          = 0;
-    volatile uint64_t *page_pointer = 0;
-    for
-    (
-        page_pointer = (uint64_t*) start;
-        page_pointer < (uint64_t*) (start + buffer->length);
-        page_pointer = (page_pointer + PAGE_SIZE)
-    )
-    {
-        tmp = *page_pointer;
-        *page_pointer = tmp;
-    }
-
-    mlock(start, buffer->length);
-
     if(mlock(start, buffer->length) != 0)
     { RETURN(ERROR( errno, "Buffer locking failed!\n")); }
 
@@ -589,10 +576,14 @@ DMABuffer_new
             if( ((long unsigned int)start)%PAGE_SIZE != 0 )
             { ERROR_EXIT( EINVAL, exit, "Input buffer is not page aligned!\n" ); }
 
-            ret += DMABuffer_generatePaths(buffer, device);
-            ret += DMABuffer_lockUserBuffer(start, buffer);
-            ret += DMABuffer_requestMemory(device, buffer, start);
-            ret += DMABuffer_mapUser(buffer, start);
+            if(DMABuffer_generatePaths(buffer, device) != PDA_SUCCESS)
+            { ERROR_EXIT( errno, exit, "Buffer registration generate paths failed!\n" ); }
+            if(DMABuffer_lockUserBuffer(start, buffer) != PDA_SUCCESS)
+            { ERROR_EXIT( errno, exit, "Buffer registration lock buffer failed!\n" ); }
+            if(DMABuffer_requestMemory(device, buffer, start) != PDA_SUCCESS)
+            { ERROR_EXIT( errno, exit, "Buffer registration request memory failed!\n" ); }
+            if(DMABuffer_mapUser(buffer, start) != PDA_SUCCESS)
+            { ERROR_EXIT( errno, exit, "Buffer registration map failed!\n" ); }
         }
         break;
 
