@@ -316,8 +316,14 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 /**
  * Kernel 4.6 introduced six-argument get_user_pages()
  * https://github.com/torvalds/linux/commit/c12d2da56d0e07d230968ee2305aaa86b93a6832
+ *
+ * Kernel 4.9 replaced six-argument get_user_pages() with five-argument version,
+ * replacing write/force parameters with gup_flags:
+ * https://github.com/torvalds/linux/commit/768ae309a96103ed02eb1e111e838c87854d8b51
  **/
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#define PDA_FIVEARG_GUP
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
 #define PDA_SIXARG_GUP
 #endif
 
