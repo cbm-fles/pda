@@ -1,7 +1,8 @@
-%define inst_prefix /opt
+%define inst_prefix /usr
+%define debug_package %{nil}
 
 Summary:            A library to access PCIe devices from userspace
-Name:               pda
+Name:               libpda
 Version:            99.99.99
 Release:            0
 License:            BSD
@@ -20,16 +21,19 @@ latency and high throughput PCIe devices from the userspace.
 %setup -q
 
 %build
-%configure --prefix=%{inst_prefix}
+./configure --prefix=$RPM_BUILD_ROOT/%{_prefix}
 make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT/%{inst_prefix}/
 
+%post
+/sbin/ldconfig
+
 %files
 %defattr(-,root,root,-)
-%{inst_prefix}/bin/*
-%{inst_prefix}/include/*
-%{inst_prefix}/lib/*
-%{inst_prefix}/share/*
+%{_bindir}/*
+%{_prefix}/lib/*
+%{_includedir}/*
+%{_datarootdir}/*

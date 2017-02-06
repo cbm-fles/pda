@@ -1,5 +1,5 @@
 DEBUG=true
-IPATH=/opt/pda
+IPATH=/usr
 
 all:
 	find . -iname 'build_*' -exec make -C {} \;
@@ -33,26 +33,29 @@ dist: rpm
 
 rpm: tarball
 	./package/rpm/configure --version --prefix=$(IPATH)
-	cp pda-`cat VERSION`.tar.gz package/rpm/
+	cp libpda-`cat VERSION`.tar.gz package/rpm/
 	make -C package/rpm/
-	cp ${HOME}/rpmbuild/RPMS/x86_64/pda-*.rpm .
+	cp ${HOME}/rpmbuild/RPMS/x86_64/libpda-`cat VERSION`*.rpm .
+	make -C patches/linux_uio rpm
+	cp ${HOME}/rpmbuild/RPMS/x86_64/pda_kadapter-`uname -r`*.rpm .
 
 tarball: mrproper
-	rm -rf pda-`cat VERSION`.tar.gz
-	tar -cf pda-`cat VERSION`.tar *
+	rm -rf libpda-`cat VERSION`.tar.gz
+	tar -cf libpda-`cat VERSION`.tar *
 	mkdir dist
-	tar -xf pda-`cat VERSION`.tar -C dist/
-	rm -rf dist/pda.cbp dist/pda.layout
+	tar -xf libpda-`cat VERSION`.tar -C dist/
+	rm -rf dist/libpda.cbp dist/libpda.layout
 	-find ./dist -name '.svn' -exec rm -rf {} \; >> /dev/null
-	rm -rf pda-`cat VERSION`.tar
-	mv dist pda-`cat VERSION`
-	tar -cf pda-`cat VERSION`.tar pda-`cat VERSION`
-	gzip pda-`cat VERSION`.tar
-	rm -rf pda-`cat VERSION`
+	rm -rf libpda-`cat VERSION`.tar
+	mv dist libpda-`cat VERSION`
+	tar -cf libpda-`cat VERSION`.tar libpda-`cat VERSION`
+	gzip libpda-`cat VERSION`.tar
+	rm -rf libpda-`cat VERSION`
 
 mrproper: clean
 	$(MAKE) PATH=$(PWD)/opt/bin/:$(PATH) -C ./test/ clean
 	-rm -rf ./package/rpm/pda.spec
+	-rm -rf patches/linux_uio/pda_kadapter.spec
 	-rm -rf build_*
 	-rm -rf opt
 	-rm -rf dist
@@ -63,7 +66,8 @@ mrproper: clean
 
 clean:
 	find . -iname 'build_*' -exec make -C {} clean \;
-	rm -rf pda*.tar.gz pda*.rpm
+	rm -rf libpda*.tar.gz libpda*.rpm package/rpm/*.tar.gz
+	rm -rf pda_kadapter*.rpm
 
 count: mrproper
 	wc -l `find . -iname '*.c' && find . -iname '*.h' && find . -iname '*.inc'`	
