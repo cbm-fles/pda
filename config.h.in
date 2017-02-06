@@ -1,0 +1,10 @@
+#pragma once                       
+                                   
+#define PDA_VERSION "${pda_VERSION}"
+#define PDA_CURRENT ${pda_VERSION_MAJOR}
+#define PDA_REVISION ${pda_VERSION_MINOR}
+#define PDA_AGE ${pda_VERSION_PATCH}
+
+#cmakedefine KMOD_AVAIL
+#cmakedefine NUMA_AVAIL
+#cmakedefine MODPROBE_MODE
