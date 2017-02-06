@@ -266,7 +266,7 @@ linux()
 	                     BUILD_PATH="$BUILD_PATH/$BUILD_PATH_POSTFIX"
                              if [ -d $BUILD_PATH  ]
                              then
-                                 echo "Build directory $BUILD_PATH already exists (aborting -> run make mrpropper to run a clean configure)"
+                                 echo "Build directory $BUILD_PATH already exists (aborting -> run 'make mrproper' to run a clean configure)"
                                  exit -1
                              else
                                  mkdir $BUILD_PATH

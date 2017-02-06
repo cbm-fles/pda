@@ -139,15 +139,18 @@ DebugInit()
             debug_mask = atoi(environment_pda_debug);
         }
 
-        fprintf(DEBUG_CHANNEL,
-                ENV_WRN " : The PDA library has debug support "
+        if(false)
+        {
+            fprintf(DEBUG_CHANNEL,
+                    ENV_WRN " : The PDA library has debug support "
                         "(current debug mask is %u).\n", debug_mask );
-        fprintf(DEBUG_CHANNEL,
-                ENV_WRN " : Please use the environment variable " ENV_VAR
-                " to change the debug mask!\n");
-        fprintf(DEBUG_CHANNEL,
-                ENV_WRN " : Please set " ENV_VAR " to the value %u to "
-                                                 "get all debug output!\n", PDADEBUG_ALL);
+            fprintf(DEBUG_CHANNEL,
+                    ENV_WRN " : Please use the environment variable " ENV_VAR
+                    " to change the debug mask!\n");
+            fprintf(DEBUG_CHANNEL,
+                    ENV_WRN " : Please set " ENV_VAR " to the value %u to "
+                    "get all debug output!\n", PDADEBUG_ALL);
+        }
     }
 }
 
