@@ -10,7 +10,7 @@ math(EXPR SO_VERSION "${pda_VERSION_MAJOR} - ${pda_VERSION_PATCH}")
 # generate config.h
 include(CheckIncludeFiles)
 check_include_files(numa.h NUMA_AVAIL)
-check_include_files(kmod.h KMOD_AVAIL)
+check_include_files(libkmod.h KMOD_AVAIL)
 set(MODPROBE_MODE TRUE CACHE BOOL "Enable modprobe mode")
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/src)
 configure_file(config.h.in ${PROJECT_BINARY_DIR}/src/config.h)
