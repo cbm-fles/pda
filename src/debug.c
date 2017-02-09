@@ -157,7 +157,7 @@ DebugInit()
 
 
 int64_t
-ErrorHandler
+PDA_ErrorHandler
 (
     const int64_t  errorcode,
     const char    *file,
@@ -237,7 +237,7 @@ DebugPrintf
 
 
 void
-WarningHandler
+PDA_WarningHandler
 (
     const char    *file,
     const uint64_t line,

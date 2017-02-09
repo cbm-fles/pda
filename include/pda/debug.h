@@ -107,10 +107,10 @@ DebugPrintf
     ...
 );
 
-#define WARN( ... ) WarningHandler( __FILE__, __LINE__, __VA_ARGS__ );
+#define WARN( ... ) PDA_WarningHandler( __FILE__, __LINE__, __VA_ARGS__ );
 
 void
-WarningHandler
+PDA_WarningHandler
 (
     const char    *file,
     const uint64_t line,
@@ -129,17 +129,17 @@ WarningHandler
 #endif /*DEBUG*/
 
 /*! Can be called if an unrecoverable error appeared. **/
-#define ERROR( errorcode, ... ) ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );
+#define ERROR( errorcode, ... ) PDA_ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );
 
 /*! Issue an error to the debug output and jump to the goto label. **/
 #define ERROR_EXIT( errorcode, gotolabel, ... ) {                     \
-        ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );   \
+        PDA_ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );   \
         goto gotolabel;                                               \
 }
 
 /* @cond SHOWHIDDEN */
 int64_t
-ErrorHandler
+PDA_ErrorHandler
 (
     const int64_t  errorcode,
     const char    *file,
