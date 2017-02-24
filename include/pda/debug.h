@@ -88,16 +88,16 @@ typedef enum PdaDebugTypes_enum PdaDebugTypes;
 #ifdef DEBUG
 
 #define DEBUG_PRINTF( mask, ... ) {                                     \
-        DebugPrintf( mask, __FILE__, __LINE__, __func__, __VA_ARGS__ ); \
+        PdaDebugPrintf( mask, __FILE__, __LINE__, __func__, __VA_ARGS__ ); \
 }
 
 #define RETURN( errorcode ) {                                      \
-        DebugPrintf(PDADEBUG_EXIT, __FILE__, __LINE__, __func__, "" ); \
+        PdaDebugPrintf(PDADEBUG_EXIT, __FILE__, __LINE__, __func__, "" ); \
         return errorcode;                                              \
 }
 
 void
-DebugPrintf
+PdaDebugPrintf
 (
     const PdaDebugTypes mask,
     const char         *file,
@@ -107,10 +107,10 @@ DebugPrintf
     ...
 );
 
-#define WARN( ... ) WarningHandler( __FILE__, __LINE__, __VA_ARGS__ );
+#define WARN( ... ) PdaWarningHandler( __FILE__, __LINE__, __VA_ARGS__ );
 
 void
-WarningHandler
+PdaWarningHandler
 (
     const char    *file,
     const uint64_t line,
@@ -129,17 +129,17 @@ WarningHandler
 #endif /*DEBUG*/
 
 /*! Can be called if an unrecoverable error appeared. **/
-#define ERROR( errorcode, ... ) ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );
+#define ERROR( errorcode, ... ) PdaErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );
 
 /*! Issue an error to the debug output and jump to the goto label. **/
 #define ERROR_EXIT( errorcode, gotolabel, ... ) {                     \
-        ErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );   \
+        PdaErrorHandler( errorcode, __FILE__, __LINE__, __VA_ARGS__ );   \
         goto gotolabel;                                               \
 }
 
 /* @cond SHOWHIDDEN */
 int64_t
-ErrorHandler
+PdaErrorHandler
 (
     const int64_t  errorcode,
     const char    *file,

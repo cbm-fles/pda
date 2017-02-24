@@ -102,7 +102,7 @@ static const PdaDebugErrorCode
 static inline
 char
 *
-DebugTranslate
+PdaDebugTranslate
 (
     const PdaDebugReturnCode errorcode
 )
@@ -125,7 +125,7 @@ static PdaDebugTypes debug_mask = 0;
 static uint32_t      activated  = 0;
 
 static inline void
-DebugInit()
+PdaDebugInit()
 {
     if(activated == 0)
     {
@@ -157,7 +157,7 @@ DebugInit()
 
 
 int64_t
-ErrorHandler
+PdaErrorHandler
 (
     const int64_t  errorcode,
     const char    *file,
@@ -167,7 +167,7 @@ ErrorHandler
 )
 {
     #ifdef DEBUG
-    DebugInit();
+    PdaDebugInit();
 
     if( (debug_mask & PDADEBUG_ERROR) != PDADEBUG_ERROR)
     {
@@ -193,7 +193,7 @@ ErrorHandler
 
 
 void
-DebugPrintf
+PdaDebugPrintf
 (
     const PdaDebugTypes mask,
     const char         *file,
@@ -204,7 +204,7 @@ DebugPrintf
 )
 {
     #ifdef DEBUG
-    DebugInit();
+    PdaDebugInit();
 
     if( (debug_mask & mask) != mask)
     {
@@ -237,7 +237,7 @@ DebugPrintf
 
 
 void
-WarningHandler
+PdaWarningHandler
 (
     const char    *file,
     const uint64_t line,
