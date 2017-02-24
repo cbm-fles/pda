@@ -48,7 +48,7 @@
 #define LINUX_VERSION_CODE KERNEL_VERSION(2,6,35)
 */
 
-#define UIO_PCI_DMA_VERSION "0.6.0"
+#define UIO_PCI_DMA_VERSION "0.7.0"
 #define UIO_PCI_DMA_MINOR   "0"
 
 #define UIO_PCI_DMA_SUCCESS 0
@@ -311,6 +311,20 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 
 #ifdef PDA_PFN_T_PAGES
 #include <linux/pfn_t.h>
+#endif
+
+/**
+ * Kernel 4.6 introduced six-argument get_user_pages()
+ * https://github.com/torvalds/linux/commit/c12d2da56d0e07d230968ee2305aaa86b93a6832
+ *
+ * Kernel 4.9 replaced six-argument get_user_pages() with five-argument version,
+ * replacing write/force parameters with gup_flags:
+ * https://github.com/torvalds/linux/commit/768ae309a96103ed02eb1e111e838c87854d8b51
+ **/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#define PDA_FIVEARG_GUP
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
+#define PDA_SIXARG_GUP
 #endif
 
 #endif /** __KERNEL__ */
