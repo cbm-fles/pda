@@ -218,7 +218,7 @@ DMABuffer_loadSGList
     { ERROR_EXIT( errno, exit, "Lookup failed!\n" ); }
 
     snprintf(buffer->internal->uio_filepath_sg, PDA_STRING_LIMIT,
-             "%s/%04x:%02x:%02x.%1x/dma/%s/sg",
+             "%s/"UIO_PATH_FORMAT"/dma/%s/sg",
              UIO_BAR_PATH, domain_id, bus_id, device_id, function_id,
              buffer->internal->name);
 
@@ -371,20 +371,20 @@ DMABuffer_generatePaths
 
 
     snprintf(buffer->internal->uio_filepath_request, PDA_STRING_LIMIT,
-             "%s/%04x:%02x:%02x.%1x/dma/request",
+             "%s/"UIO_PATH_FORMAT"/dma/request",
              UIO_BAR_PATH, domain_id, bus_id, device_id, function_id);
 
     snprintf(buffer->internal->uio_filepath_delete, PDA_STRING_LIMIT,
-             "%s/%04x:%02x:%02x.%1x/dma/free",
+             "%s/"UIO_PATH_FORMAT"/dma/free",
              UIO_BAR_PATH, domain_id, bus_id, device_id, function_id);
 
     snprintf(buffer->internal->uio_filepath_map, PDA_STRING_LIMIT,
-             "%s/%04x:%02x:%02x.%1x/dma/%s/map",
+             "%s/"UIO_PATH_FORMAT"/dma/%s/map",
              UIO_BAR_PATH, domain_id, bus_id, device_id, function_id,
              buffer->internal->name);
 
     snprintf(buffer->internal->uio_filepath_folder, PDA_STRING_LIMIT,
-             "%s/%04x:%02x:%02x.%1x/dma/%s/",
+             "%s/"UIO_PATH_FORMAT"/dma/%s/",
              UIO_BAR_PATH, domain_id, bus_id, device_id, function_id,
              buffer->internal->name);
 
@@ -632,12 +632,12 @@ DMABuffer_delete_not_attached_buffers(PciDevice *device)
 
     char uio_file_path[PDA_STRING_LIMIT];
     memset(uio_file_path, 0, PDA_STRING_LIMIT);
-    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/%04x:%02x:%02x.%1x/dma/",
+    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/"UIO_PATH_FORMAT"/dma/",
             UIO_BAR_PATH, domain_id, bus_id, device_id, function_id);
 
     char uio_delete_path[PDA_STRING_LIMIT];
     memset(uio_delete_path, 0, PDA_STRING_LIMIT);
-    snprintf(uio_delete_path, PDA_STRING_LIMIT, "%s/%04x:%02x:%02x.%1x/dma/free",
+    snprintf(uio_delete_path, PDA_STRING_LIMIT, "%s/"UIO_PATH_FORMAT"/dma/free",
             UIO_BAR_PATH, domain_id, bus_id, device_id, function_id);
 
     /** Iterate over all directories inside the dma directory */
@@ -709,7 +709,7 @@ DMABuffer_check_persistant(PciDevice *device)
 
     char uio_file_path[PDA_STRING_LIMIT];
     memset(uio_file_path, 0, PDA_STRING_LIMIT);
-    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/%04x:%02x:%02x.%1x/dma/",
+    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/"UIO_PATH_FORMAT"/dma/",
             UIO_BAR_PATH, domain_id, bus_id, device_id, function_id);
 
     /** Return pointer */

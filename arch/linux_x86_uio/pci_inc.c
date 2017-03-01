@@ -211,7 +211,7 @@ PciDevice_new
     snprintf( uio_sysfs_dir, PDA_STRING_LIMIT, "%s", UIO_DMA_SYSFS_DIR);
 
     char uio_sysfs_entry[PDA_STRING_LIMIT];
-    snprintf(uio_sysfs_entry, PDA_STRING_LIMIT, "%04d:%02d:%02d.%d",
+    snprintf(uio_sysfs_entry, PDA_STRING_LIMIT, UIO_PATH_FORMAT,
              domain_id, bus_id, device_id, function_id);
 
     RETURN(PciDevice_new_op(uio_sysfs_entry, "0000", "0000", domain_id, bus_id, device_id, function_id));
@@ -602,7 +602,7 @@ PciDevice_getListOfBuffers
 
     char uio_file_path[PDA_STRING_LIMIT];
     memset(uio_file_path, 0, PDA_STRING_LIMIT);
-    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/%04x:%02x:%02x.%1x/dma/",
+    snprintf(uio_file_path, PDA_STRING_LIMIT, "%s/"UIO_PATH_FORMAT"/dma/",
             UIO_BAR_PATH, device->domain_id, device->bus_id, device->device_id, device->function_id);
 
     DIR *directory = NULL;

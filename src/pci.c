@@ -306,7 +306,7 @@ PciDevice_invoke_libpci
                       );
 
         char device_bus_id[] = "0000:00:00.0";
-        snprintf(device_bus_id, 13,"%04x:%02x:%02x.%d", pci_device->domain, pci_device->bus,
+        snprintf(device_bus_id, 13, UIO_PATH_FORMAT, pci_device->domain, pci_device->bus,
                 pci_device->dev, pci_device->func);
 
         if(strcmp(device_bus_id, bus_id) == 0)

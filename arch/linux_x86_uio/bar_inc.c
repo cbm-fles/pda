@@ -129,7 +129,7 @@ Bar_new
     }
 
     snprintf( workp.uio_file_path, PDA_STRING_LIMIT,
-              "%s/%04x:%02x:%02x.%1x/bar%d",
+              "%s/"UIO_PATH_FORMAT"/bar%d",
               UIO_BAR_PATH, domain_id, bus_id,
               device_id, function_id, number );
 

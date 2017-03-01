@@ -44,4 +44,12 @@
 #define UIO_DEVFS_DIR "/dev"
 #define UIO_BAR_PATH "/sys/bus/pci/devices"
 
+// PCI BDF format in linux:
+// name     width   digits in path
+// domain   16 bit  4 hex
+// bus       8 bit  2 hex
+// device    5 bit  2 hex
+// function  3 bit  1 hex/dec
+#define UIO_PATH_FORMAT "%04x:%02x:%02x.%1d"
+
 #endif /*UIO_DEFINITIONS_H*/

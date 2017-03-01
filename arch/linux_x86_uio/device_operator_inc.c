@@ -317,6 +317,7 @@ DeviceOperator_new
                 fp_vendor = NULL;
                 if(read_chars != 6)
                 {
+                    // TODO: This looks broken. DeviceOperator_delete -> read_chars?
                     ERROR_EXIT( EINVAL, deviceoperatornew_return,
                                 "Read failed! (only %llu chars read)\n", DeviceOperator_delete);
                 }
@@ -336,8 +337,10 @@ DeviceOperator_new
                 uint8_t  bus_id      = 0;
                 uint8_t  device_id   = 0;
                 uint8_t  function_id = 0;
-                sscanf (directory_entry->d_name,"%4hx:%2hhx:%2hhx.%2hhx",
-                        &domain_id, &bus_id, &device_id, &function_id);
+                if(sscanf (directory_entry->d_name,"%4hx:%2hhx:%2hhx.%1hhx",
+                           &domain_id, &bus_id, &device_id, &function_id) != 4)
+                { ERROR_EXIT( EINVAL, deviceoperatornew_return, "Parsing sysfs d_name failed!\n" ); }
+
 
                 dev_operator->pci_devices[dev_operator->pci_devices_number] =
                     PciDevice_new_op(directory_entry->d_name, vendor, device,
