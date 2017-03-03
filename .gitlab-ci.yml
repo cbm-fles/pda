@@ -1,0 +1,18 @@
+stages:
+  - build
+
+libpad:
+  stage: build
+  tags:
+    - eda02
+  script:
+    - ./configure --debug=true
+    - make
+
+uio_pci_dma:
+  stage: build
+  tags:
+    - eda02
+  script:
+    - cd patches/linux_uio
+    - make
