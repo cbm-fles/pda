@@ -266,12 +266,12 @@ probe
     spin_lock_init(&alloc_free_lock);
 
     /* attr_bin_request */
-    BIN_ATTR_PDA(request, sizeof(struct uio_pci_dma_private), S_IWUGO, NULL,
-        uio_pci_dma_sysfs_request_buffer_write, NULL);
+    BIN_ATTR_PDA(request, sizeof(struct uio_pci_dma_private), S_IWUSR | S_IWGRP,
+                 NULL, uio_pci_dma_sysfs_request_buffer_write, NULL);
 
     /* attr_bin_free */
-    BIN_ATTR_PDA(free, 0, S_IWUGO, NULL,
-        uio_pci_dma_sysfs_delete_buffer_write, NULL);
+    BIN_ATTR_PDA(free, 0, S_IWUSR | S_IWGRP, NULL,
+                 uio_pci_dma_sysfs_delete_buffer_write, NULL);
 
     /* attr_bin_max_payload_size */
     BIN_ATTR_PDA(max_payload_size, sizeof(int), S_IRUGO,
@@ -358,7 +358,8 @@ probe
     for(i = 0; i<PCI_NUM_RESOURCES; i++)
     {
         dma_device->attr_bar[i].attr.name = NULL;
-        dma_device->attr_bar[i].attr.mode = S_IRUGO|S_IWUGO;
+        dma_device->attr_bar[i].attr.mode =
+            S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
         dma_device->attr_bar[i].size      = 0;
         dma_device->attr_bar[i].read      = NULL;
         dma_device->attr_bar[i].write     = NULL;
