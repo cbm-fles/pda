@@ -60,7 +60,7 @@
 //#define UIO_PDA_DEBUG
 //#define UIO_PDA_DEBUG_SG
 #define UIO_PDA_IOMMU
-#define UIO_PDA_USE_PAGEFAULT_HANDLER
+//#define UIO_PDA_USE_PAGEFAULT_HANDLER
 
 
 #include "uio_pci_dma.h"
