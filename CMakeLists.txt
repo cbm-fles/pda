@@ -24,7 +24,8 @@ execute_process(
 endforeach()
 
 # build userspace library
-add_compile_options(-std=gnu99 -Wall -Wunused-result -fno-tree-vectorize)
+add_compile_options(-std=gnu99 -Wall -Wunused-result -fno-tree-vectorize
+                               -Wno-format-truncation)
 file(GLOB LIB_SOURCES src/*.c)
 add_library(pda-static STATIC ${LIB_SOURCES})
 add_library(pda-shared SHARED ${LIB_SOURCES})
