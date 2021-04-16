@@ -37,6 +37,12 @@ pack:
 	gzip pda_kadapter-${VERSION}.tar
 	rm -rf pda_kadapter-${VERSION}
 
+dkms:
+	mkdir -p /usr/src/uio_pci_dma-${VERSION}
+	cp uio_pci_dma.c uio_pci_dma.h dkms.conf /usr/src/uio_pci_dma-${VERSION}/
+	cp Makefile.dkms /usr/src/uio_pci_dma-${VERSION}/Makefile
+	dkms install uio_pci_dma/${VERSION}
+
 clean:
 	rm -rf test
 	rm -rf uio_pci_dma.ko
