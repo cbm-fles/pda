@@ -4,7 +4,7 @@ SUBSYSTEM=="drivers", ACTION=="add", KERNEL=="uio_pci_dma", \
   RUN+="/bin/chmod 0220 /sys/%p/new_id"
 
 # new device added; set perms on /dev/uioX and PCI config and resources
-SUBSYSTEM=="uio", ACTION=="add", GROUP="pda", MODE="0660", \
+SUBSYSTEM=="uio", ACTION=="add", ATTR{name}=="uio_pci_dma", GROUP="pda", MODE="0660", \
   RUN+="/bin/chgrp pda /sys/%p/device/config /sys/%p/device/dma/free /sys/%p/device/dma/request", \
   RUN+="/bin/chmod 0664 /sys/%p/device/config", \
   RUN+="/usr/bin/find /sys/%p/device/ -regextype posix-extended -regex '.*/(resource[0-5](_wc)?|bar[0-5])' -execdir /bin/chgrp pda {} ; -execdir /bin/chmod 0660 {} ;"
