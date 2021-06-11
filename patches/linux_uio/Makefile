@@ -1,7 +1,8 @@
 KDIR    := /lib/modules/$(shell uname -r)/build
-VERSION := $(shell uname -r)-$(shell cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2)
+MOD_VERSION := $(shell cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2)
+VERSION     := $(shell uname -r)-$(shell cat uio_pci_dma.h | grep UIO_PCI_DMA_VERSION | cut -d\" -f2)
 
-all: prepare
+build: prepare
 	KDIR=$(KDIR) INSTALL_MOD_PATH=$(INSTALL_MOD_PATH) make -C build/
 	cp build/uio_pci_dma.ko .
 	rm -rf build
@@ -11,12 +12,16 @@ prepare: clean
 	cp Makefile_dma.temp build/Makefile
 	cp uio_pci_dma.* build/
 
-install: all
+install: udev dkms
+
+udev:
+	install 99-pda.rules /etc/udev/rules.d/
+
+manual_install: build udev
 	cp      uio_pci_dma.ko /lib/modules/$(shell uname -r)/kernel/drivers/uio/
-	cp      99-pda.rules   /etc/udev/rules.d/	
 	depmod -a
 
-rpminstall: all
+rpminstall: build
 	mkdir -p             $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
 	cp uio_pci_dma.ko    $(INSTALL_MOD_PATH)/lib/modules/$(shell uname -r)/kernel/drivers/uio/
 	mkdir -p             $(INSTALL_MOD_PATH)/etc/udev/rules.d/
@@ -38,10 +43,10 @@ pack:
 	rm -rf pda_kadapter-${VERSION}
 
 dkms:
-	mkdir -p /usr/src/uio_pci_dma-${VERSION}
-	cp uio_pci_dma.c uio_pci_dma.h dkms.conf /usr/src/uio_pci_dma-${VERSION}/
-	cp Makefile.dkms /usr/src/uio_pci_dma-${VERSION}/Makefile
-	dkms install uio_pci_dma/${VERSION}
+	mkdir -p /usr/src/uio_pci_dma-${MOD_VERSION}
+	cp uio_pci_dma.c uio_pci_dma.h dkms.conf /usr/src/uio_pci_dma-${MOD_VERSION}/
+	cp Makefile.dkms /usr/src/uio_pci_dma-${MOD_VERSION}/Makefile
+	dkms install uio_pci_dma/${MOD_VERSION}
 
 clean:
 	rm -rf test
