@@ -46,7 +46,7 @@ dkms:
 	mkdir -p /usr/src/uio_pci_dma-${MOD_VERSION}
 	cp uio_pci_dma.c uio_pci_dma.h dkms.conf /usr/src/uio_pci_dma-${MOD_VERSION}/
 	cp Makefile.dkms /usr/src/uio_pci_dma-${MOD_VERSION}/Makefile
-	dkms install uio_pci_dma/${MOD_VERSION}
+	dkms install --force uio_pci_dma/${MOD_VERSION}
 
 clean:
 	rm -rf test
