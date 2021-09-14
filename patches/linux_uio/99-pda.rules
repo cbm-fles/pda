@@ -1,7 +1,7 @@
 # on module load; set perms on /sys/...../new_id
-# uncomment line 4 to additionally add id
-SUBSYSTEM=="drivers", ACTION=="add", KERNEL=="uio_pci_dma", \
+# add following line to additionally add id
 # RUN+="/bin/sh -c '/bin/echo 10ee f1e5 > /sys/%p/new_id'", \
+SUBSYSTEM=="drivers", ACTION=="add", KERNEL=="uio_pci_dma", \
   RUN+="/bin/chgrp pda /sys/%p/new_id", \
   RUN+="/bin/chmod 0220 /sys/%p/new_id"
 
