@@ -192,10 +192,10 @@ irqhandler
 }
 
 #define DMA_MASK( tag )                                                    \
-if( (err = pci_set ## tag ## dma_mask(pci_device, DMA_BIT_MASK(64))) )     \
+if( (err = dma_set ## tag ## mask(&pci_device->dev, DMA_BIT_MASK(64))) )     \
 {                                                                          \
     printk(DRIVER_NAME " : Warning: couldn't set 64-bit PCI DMA mask.\n"); \
-    if( (err = pci_set_dma_mask(pci_device, DMA_BIT_MASK(32))) )           \
+    if( (err = dma_set_mask(&pci_device->dev, DMA_BIT_MASK(32))) )           \
     { UIO_PDA_ERROR("Can't set PCI DMA mask, aborting!\n", exit); }        \
 }
 
@@ -320,7 +320,7 @@ probe
     UIO_DEBUG_PRINTF("Set DMA-Master\n");
     pci_set_master(pci_device);
     DMA_MASK( _ );
-    DMA_MASK( _consistent_ );
+    DMA_MASK( _coherent_ );
 
     UIO_DEBUG_PRINTF("Generate a new sysfs folder\n");
     kset                 = kset_create_and_add("dma", NULL, &pci_device->dev.kobj);
