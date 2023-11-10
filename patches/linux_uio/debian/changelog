@@ -1,0 +1,5 @@
+pda-dkms (0.10.0-1) lunar; urgency=medium
+
+  * Initial package.
+
+ -- Dirk Hutter <hutter@compeng.uni-frankfurt.de>  Fri, 10 Nov 2023 14:07:13 +0100

@@ -48,6 +48,9 @@ dkms:
 	cp Makefile.dkms /usr/src/uio_pci_dma-${MOD_VERSION}/Makefile
 	dkms install --force uio_pci_dma/${MOD_VERSION}
 
+deb:
+	debuild -i -us -uc -b
+
 clean:
 	rm -rf test
 	rm -rf uio_pci_dma.ko

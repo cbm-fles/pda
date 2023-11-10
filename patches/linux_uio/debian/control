@@ -1,0 +1,8 @@
+Source: pda-dkms
+Maintainer: Dirk Hutter <hutter@compeng.uni-frankfurt.de>
+Build-Depends: debhelper (>= 9), dkms
+
+Package: pda-dkms
+Architecture: amd64
+Depends: ${misc:Depends}
+Description: DKMS source for the PDA uio_pci_dma driver

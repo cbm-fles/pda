@@ -1,0 +1,3 @@
+Open fixes
+- The package will need a build-dependency on dh-exec
+- Path in .intall file is hard coded by involves version

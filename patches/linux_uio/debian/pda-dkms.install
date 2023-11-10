@@ -1,0 +1,2 @@
+#!/usr/bin/dh-exec
+Makefile.dkms => usr/src/uio_pci_dma-0.10.0/Makefile
