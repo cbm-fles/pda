@@ -15,5 +15,4 @@ jobs:
         sudo apt-get install -yq linux-headers-`uname -r`
 
     - name: Build
-      working-directory: ${{runner.workspace}}
       run: make deb
