@@ -6,7 +6,9 @@ include /usr/share/dpkg/pkg-info.mk
 	dh $@ --with dkms
 
 override_dh_install:
-	dh_install uio_pci_dma.* usr/src/uio_pci_dma-$(DEB_VERSION_UPSTREAM)/
+	mkdir debian/tmp && cp Makefile.dkms debian/tmp/Makefile
+	dh_install uio_pci_dma.* debian/tmp/Makefile usr/src/uio_pci_dma-$(DEB_VERSION_UPSTREAM)/
+	dh_install 99-pda.rules /lib/udev/rules.d/
 
 override_dh_dkms:
 	dh_dkms -V $(DEB_VERSION_UPSTREAM)

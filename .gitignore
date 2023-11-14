@@ -2,4 +2,5 @@
 /build_linux_x86_uio/
 /doxygen/
 /patches/linux_uio/uio_pci_dma.ko
+/patches/pda-dkms_0.10.0-1_amd64.*
 /build*/

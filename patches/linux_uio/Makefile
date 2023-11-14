@@ -51,7 +51,11 @@ dkms:
 deb:
 	debuild -i -us -uc -b
 
-clean:
+clean_deb:
+	-debuild -i -us -uc -b -T clean
+	rm ../pda-dkms_0.10.0-1_amd64*
+
+clean: clean_deb
 	rm -rf test
 	rm -rf uio_pci_dma.ko
 	rm -rf build

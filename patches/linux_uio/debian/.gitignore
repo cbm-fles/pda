@@ -1,0 +1,9 @@
+/.debhelper/
+/files
+/pda-dkms.debhelper.log
+/pda-dkms.dkms.debhelper
+/pda-dkms.postinst.debhelper
+/pda-dkms.prerm.debhelper
+/pda-dkms.substvars
+/pda-dkms/
+/tmp/

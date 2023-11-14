@@ -3,6 +3,14 @@ Maintainer: Dirk Hutter <hutter@compeng.uni-frankfurt.de>
 Build-Depends: debhelper (>= 9), dkms
 
 Package: pda-dkms
+Section: kernel
+Priority: optional
 Architecture: amd64
 Depends: ${misc:Depends}
-Description: DKMS source for the PDA uio_pci_dma driver
+Description: dkms source for the PDA uio_pci_dma driver
+ The Portable Driver Architecture (PDA) is a microdriver library for
+ programming Linux PCI drivers in the userspace.
+ .
+ This package provides the dkms source code for the PDA's uio_pci_dma
+ kernel module.
+ Kernel source or headers are required to compile these modules.
