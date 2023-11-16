@@ -6,7 +6,7 @@ Package: pda-kernel-dkms
 Section: kernel
 Priority: optional
 Architecture: amd64
-Depends: ${misc:Depends}
+Depends: adduser, ${misc:Depends}
 Description: dkms source for the PDA uio_pci_dma driver
  The Portable Driver Architecture (PDA) is a microdriver library for
  programming Linux PCI drivers in the userspace.
