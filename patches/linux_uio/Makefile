@@ -12,12 +12,16 @@ prepare: clean
 	cp Makefile_dma.temp build/Makefile
 	cp uio_pci_dma.* build/
 
-install: udev dkms
+install: udev dkms modules-load
 
 udev:
 	install 99-pda.rules /etc/udev/rules.d/
 
-manual_install: build udev
+modules-load:
+	install 90-pda.conf /etc/modules-load.d/
+
+
+manual_install: build udev modules-load
 	cp      uio_pci_dma.ko /lib/modules/$(shell uname -r)/kernel/drivers/uio/
 	depmod -a
 
