@@ -1,8 +1,8 @@
-Source: pda-dkms
+Source: pda-kernel-dkms
 Maintainer: Dirk Hutter <hutter@compeng.uni-frankfurt.de>
 Build-Depends: debhelper (>= 9), dkms
 
-Package: pda-dkms
+Package: pda-kernel-dkms
 Section: kernel
 Priority: optional
 Architecture: amd64

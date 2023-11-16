@@ -53,7 +53,7 @@ deb:
 
 clean_deb:
 	-debuild -i -us -uc -b -T clean
-	rm ../pda-dkms_0.10.0-1_amd64*
+	rm ../pda-kernel-dkms_*
 
 clean: clean_deb
 	rm -rf test
