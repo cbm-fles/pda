@@ -20,4 +20,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
+        name: pda-kernel-dkms.deb
         path: pda-kernel-dkms*.deb

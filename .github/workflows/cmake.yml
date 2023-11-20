@@ -48,5 +48,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: libpda ${{ matrix.node-version }}
+        name: libpda ${{ matrix.include }}
         path: ${{runner.workspace}}/build/libpda*.deb
