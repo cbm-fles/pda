@@ -1,4 +1,4 @@
-name: packages
+name: pda-kernel
 
 on: [push]
 
