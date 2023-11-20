@@ -1,4 +1,4 @@
-pda-kernel-dkms (0.10.0-1) lunar; urgency=medium
+pda-kernel-dkms (0.9.0-1) lunar; urgency=medium
 
   * Initial package.
 
