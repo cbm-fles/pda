@@ -44,3 +44,9 @@ jobs:
     - name: Package
       working-directory: ${{runner.workspace}}/build
       run: cpack
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: libpda
+        path: ${{runner.workspace}}/build/libpda*.deb
