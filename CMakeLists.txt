@@ -55,33 +55,31 @@ if (${KMOD_AVAIL})
 endif()
 
 # specify files to install
+set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+     OWNER_READ OWNER_WRITE OWNER_EXECUTE
+     GROUP_READ GROUP_EXECUTE
+     WORLD_READ WORLD_EXECUTE)
 install(TARGETS pda-static ARCHIVE DESTINATION lib)
 install(TARGETS pda-shared LIBRARY DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
 
-# build debian package - experimental
+# build debian package
 set(CPACK_GENERATOR DEB)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-  "Portable Driver Architecture (PDA) low-level user space library")
-#set(CPACK_PACKAGE_NAME libpda-dev)
 set(CPACK_PACKAGE_NAME libpda${SO_VERSION})
-set(CPACK_PACKAGE_CONTACT
-  "Jan de Cuveland <cuveland@compeng.uni-frankfurt.de>")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/cbm-fles/pda")
 set(CPACK_PACKAGE_VERSION_MAJOR ${pda_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${pda_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${pda_VERSION_PATCH})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+  "Portable Driver Architecture (PDA) low-level user space library")
+set(CPACK_PACKAGE_CONTACT
+  "Jan de Cuveland <cuveland@compeng.uni-frankfurt.de>")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/cbm-fles/pda")
+set(CPACK_DEBIAN_PACKAGE_SECTION libdevel)
+set(CPACK_DEBIAN_PACKAGE_PRIORITY optional)
 set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
-set(CPACK_STRIP_FILES TRUE)
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
-# TODO: set something like libpda4 (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}, or is thi in shlibsdeps?
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.15)")
-#set(CPACK_DEBIAN_PACKAGE_SECTION libdevel)
-set(CPACK_DEBIAN_PACKAGE_SECTION libs)
-set(CPACK_DEBIAN_PACKAGE_PRIORITY optional)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-# TODO: maybe this is also incorrect in "make install"
-set(CPACK_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+set(CPACK_STRIP_FILES TRUE)
 include(CPack)
