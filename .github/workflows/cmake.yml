@@ -3,7 +3,7 @@ name: CMake
 on: [push]
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Debug
 
 jobs:
   build:
