@@ -1,0 +1,24 @@
+name: pda-kernel
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -yq debhelper dkms devscripts linux-headers-`uname -r`
+
+    - name: Build
+      run: make deb
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: pda-kernel-dkms.deb
+        path: pda-kernel-dkms*.deb

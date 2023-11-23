@@ -3,7 +3,7 @@ name: CMake
 on: [push]
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
       CXX: ${{matrix.cxx}}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install dependencies
       run: |
@@ -41,3 +41,12 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: make -j
 
+    - name: Package
+      working-directory: ${{runner.workspace}}/build
+      run: cpack
+
+    - name: Upload
+      uses: actions/upload-artifact@v3
+      with:
+        name: libpda-${{ matrix.cc }}
+        path: ${{runner.workspace}}/build/libpda*.deb

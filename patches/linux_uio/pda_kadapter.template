@@ -30,7 +30,7 @@ make INSTALL_MOD_PATH=$RPM_BUILD_ROOT rpminstall
 %files
 %defattr(644,root,root,755)
 /lib/modules/%{UNAME}/kernel/drivers/uio/uio_pci_dma.ko
-/etc/udev/rules.d/99-pda.rules   
+/etc/udev/rules.d/90-pda.rules   
 
 %post
 /sbin/depmod -a

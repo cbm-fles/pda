@@ -2,4 +2,6 @@
 /build_linux_x86_uio/
 /doxygen/
 /patches/linux_uio/uio_pci_dma.ko
+/patches/pda-kernel-dkms_*
+/*.deb
 /build*/
