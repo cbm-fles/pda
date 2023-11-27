@@ -19,9 +19,11 @@ case "$1" in
         then
             echo "Creating 'pda' system group for device access management"
             addgroup --system pda
+            echo -e "Please add all intended users to group 'pda', e.g., 'usermod -a -G pda <user>'"
         fi
 
-        modprobe -a uio_pci_dma
+        echo "Insert kernel module"
+        modprobe uio_pci_dma
 
     ;;
 
