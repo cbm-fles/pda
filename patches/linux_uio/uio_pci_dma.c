@@ -724,7 +724,11 @@ uio_pci_dma_allocate_user_memory
     #endif
 
     UIO_DEBUG_PRINTF("Get user pages\n");
-#if defined(PDA_FIVEARG_GUP)
+#if defined(PDA_FOURARG_GUP)
+    int pages_mapped
+        = get_user_pages
+            (priv->start, pages, FOLL_WRITE, priv->page_list);
+#elif defined(PDA_FIVEARG_GUP)
     int pages_mapped
         = get_user_pages
             (priv->start, pages, FOLL_WRITE, priv->page_list, NULL);
