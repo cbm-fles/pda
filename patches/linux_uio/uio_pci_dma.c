@@ -833,13 +833,25 @@ uio_pci_dma_allocate_kernel_memory
     sg_init_table( (priv->sg), priv->pages);
 
     /* Get the order for chunks which can be allocated in a consecutive buffer.
-     * We allocate chunks with the size of MAX_ORDER, which is the maximum that
+     * We allocate chunks with the size of MAX_PAGE_ORDER, which is the maximum that
      * we can get in a consecutive buffer. */
     uint8_t order = 0;
+#if defined(PDA_MAX_PAGE_ORDER_RENAMED)
+    if( (order = get_order(priv->size)) > (MAX_PAGE_ORDER) )
+    { order = (MAX_PAGE_ORDER); }
+    UIO_DEBUG_PRINTF("Page order = %u (MAX_PAGE_ORDER = %u) Pages to allocate = %llu\n",
+                     order, MAX_PAGE_ORDER, priv->pages);
+#elif defined(PDA_MAX_PAGE_ORDER_INCLUSIVE)
+    if( (order = get_order(priv->size)) > (MAX_ORDER) )
+    { order = (MAX_ORDER); }
+    UIO_DEBUG_PRINTF("Page order = %u (MAX_ORDER = %u) Pages to allocate = %llu\n",
+                     order, MAX_ORDER, priv->pages);
+#else
     if( (order = get_order(priv->size)) > (MAX_ORDER-1) )
     { order = (MAX_ORDER - 1); }
     UIO_DEBUG_PRINTF("Page order = %u (MAX_ORDER = %u) Pages to allocate = %llu\n",
                      order, MAX_ORDER, priv->pages);
+#endif
 
     uint64_t pages_left   = priv->pages;
     priv->length = 0;

@@ -332,6 +332,19 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 #define PDA_SIXARG_GUP
 #endif
 
+/**
+ * Kernel 6.4 changes the definition of MAX_ORDER to be inclusive
+ * https://github.com/torvalds/linux/commit/23baf831a32c04f9a968812511540b1b3e648bf5
+ *
+ * Kernel 6.8 renames MAX_ORDER to MAX_PAGE_ORDER
+ * https://github.com/torvalds/linux/commit/5e0a760b44417f7cadd79de2204d6247109558a0
+ **/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+#define PDA_MAX_PAGE_ORDER_RENAMED
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+#define PDA_MAX_PAGE_ORDER_INCLUSIVE
+#endif
+
 #endif /** __KERNEL__ */
 
 #endif /** UIO_PCI_DMA_H */
