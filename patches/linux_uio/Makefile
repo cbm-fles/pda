@@ -57,7 +57,7 @@ deb:
 
 clean_deb:
 	-debuild -i -us -uc -b -T clean
-	rm ../pda-kernel-dkms_*
+	-rm ../pda-kernel-dkms_*
 
 clean: clean_deb
 	rm -rf test
