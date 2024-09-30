@@ -19,7 +19,7 @@ case "$1" in
         then
             echo "Creating 'pda' system group for device access management"
             addgroup --system pda
-            echo -e "Please add all intended users to group 'pda', e.g., 'usermod -a -G pda <user>'"
+            echo "Please add all intended users to group 'pda', e.g., 'usermod -a -G pda <user>'"
         fi
 
         echo "Insert kernel module"

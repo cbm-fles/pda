@@ -56,6 +56,7 @@
 
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
 //#define UIO_PDA_DEBUG
 //#define UIO_PDA_DEBUG_SG
