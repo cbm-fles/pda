@@ -12,7 +12,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -yq debhelper dkms devscripts linux-headers-`uname -r`
+        sudo apt-get install -yq build-essential debhelper dkms devscripts linux-headers-`uname -r`
 
     - name: Build
       run: make deb
