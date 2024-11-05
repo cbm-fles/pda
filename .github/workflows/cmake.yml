@@ -7,7 +7,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
@@ -18,12 +18,12 @@ jobs:
           cxx: clang++
       fail-fast: false
 
-    env: 
+    env:
       CC: ${{matrix.cc}}
       CXX: ${{matrix.cxx}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
@@ -46,7 +46,7 @@ jobs:
       run: cpack
 
     - name: Upload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: libpda-${{ matrix.cc }}
         path: ${{runner.workspace}}/build/libpda*.deb

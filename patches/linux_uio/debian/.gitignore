@@ -1,3 +1,4 @@
+/debhelper-build-stamp
 /.debhelper/
 /files
 /pda-kernel-dkms.debhelper.log

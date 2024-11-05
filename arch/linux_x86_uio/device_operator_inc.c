@@ -187,7 +187,7 @@ PDAInit()
 
     if(!isCorrectVersion("uio_pci_dma", UIO_PCI_DMA_VERSION))
     {
-        DEBUG_PRINTF( PDADEBUG_ERROR, "Kernel adapter (uio_pci_dma.ko) version missmatch!\n");
+        DEBUG_PRINTF( PDADEBUG_ERROR, "Kernel adapter (uio_pci_dma.ko) version mismatch!\n");
         RETURN(!PDA_SUCCESS);
     }
 
@@ -223,7 +223,11 @@ DeviceOperator_new
 {
     DEBUG_PRINTF(PDADEBUG_ENTER, "");
 
-    PDAInit();
+    if(PDA_SUCCESS != PDAInit())
+    {
+        DEBUG_PRINTF( PDADEBUG_ERROR, "PDA initialization failed!\n");
+        RETURN(NULL);
+    }
 
     DIR *directory = NULL;
 

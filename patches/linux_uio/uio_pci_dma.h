@@ -48,7 +48,7 @@
 #define LINUX_VERSION_CODE KERNEL_VERSION(2,6,35)
 */
 
-#define UIO_PCI_DMA_VERSION "0.9.0"
+#define UIO_PCI_DMA_VERSION "0.10.0"
 #define UIO_PCI_DMA_MINOR   "0"
 
 #define UIO_PCI_DMA_SUCCESS 0
@@ -320,11 +320,29 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  * Kernel 4.9 replaced six-argument get_user_pages() with five-argument version,
  * replacing write/force parameters with gup_flags:
  * https://github.com/torvalds/linux/commit/768ae309a96103ed02eb1e111e838c87854d8b51
+ *
+ * Kernel 6.5 removes unused vmas parameter from get_user_pages()
+ * https://github.com/torvalds/linux/commit/54d020692b342f7bd02d7f5795fb5c401caecfcc
  **/
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0)
+#define PDA_FOURARG_GUP
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 #define PDA_FIVEARG_GUP
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
 #define PDA_SIXARG_GUP
+#endif
+
+/**
+ * Kernel 6.4 changes the definition of MAX_ORDER to be inclusive
+ * https://github.com/torvalds/linux/commit/23baf831a32c04f9a968812511540b1b3e648bf5
+ *
+ * Kernel 6.8 renames MAX_ORDER to MAX_PAGE_ORDER
+ * https://github.com/torvalds/linux/commit/5e0a760b44417f7cadd79de2204d6247109558a0
+ **/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+#define PDA_MAX_PAGE_ORDER_RENAMED
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
+#define PDA_MAX_PAGE_ORDER_INCLUSIVE
 #endif
 
 #endif /** __KERNEL__ */
