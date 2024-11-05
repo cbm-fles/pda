@@ -1078,9 +1078,12 @@ DMABuffer_wrapMap(DMABuffer *buffer)
     { ERROR_EXIT( errno, exit, "Base allocation failed\n" ); }
     else
     {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuse-after-free"
         uint8_t *buffer_area_tmp = buffer_area;
         free(buffer_area);
         buffer_area = buffer_area_tmp;
+#pragma GCC diagnostic pop
     }
 
     if(buffer->type == PDA_BUFFER_KERNEL)
