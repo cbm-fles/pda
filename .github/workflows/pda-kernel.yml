@@ -17,6 +17,13 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
+      if: ${{ matrix.os == 'ubuntu-22.04' }}
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -yq debhelper dkms devscripts linux-headers-`uname -r`
+
+    - name: Install dependencies
+      if: ${{ matrix.os == 'ubuntu-24.04' }}
       run: |
         sudo apt-get update -y
         sudo apt-get install -yq build-essential debhelper dh-dkms dkms devscripts linux-headers-`uname -r`
