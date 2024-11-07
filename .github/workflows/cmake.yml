@@ -36,22 +36,22 @@ jobs:
         sudo apt-get install -yq libkmod-dev libpci-dev libtool-bin
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
+      run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{github.workspace}}/build
       run: make -j
 
     - name: Package
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{github.workspace}}/build
       run: cpack
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: libpda-${{matrix.os}}-${{matrix.cc}}
-        path: ${{runner.workspace}}/build/libpda*.deb
+        path: ${{github.workspace}}/build/libpda*.deb
