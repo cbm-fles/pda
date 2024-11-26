@@ -368,7 +368,7 @@ probe
 
         if(pci_device->resource[i].flags & IORESOURCE_MEM)
         {
-            dma_device->attr_bar[i].attr.name = kzalloc(10*sizeof(char), GFP_KERNEL);
+            dma_device->attr_bar[i].attr.name = kmalloc(10*sizeof(char), GFP_KERNEL);
             sprintf((char*)dma_device->attr_bar[i].attr.name, "bar%u", i);
 
             dma_device->attr_bar[i].size      = pci_resource_len(pci_device, i);
