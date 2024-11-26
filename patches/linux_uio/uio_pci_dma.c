@@ -981,12 +981,12 @@ BIN_ATTR_WRITE_CALLBACK( delete_buffer_write )
     spin_lock(&alloc_free_lock);
 
     struct bin_attribute attrib;
-    char                 tmp_string[count+1];
+    char                 tmp_string[UIO_PCI_DMA_BUFFER_NAME_SIZE];
     struct kset         *kset_pointer = to_kset(kobj);
     struct kobject      *buffer_kobj  = NULL;
     attrib.attr.name                  = "map";
 
-    snprintf(tmp_string, count, "%s", buffer);
+    snprintf(tmp_string, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", buffer);
     KSET_FIND( kset_pointer, tmp_string, buffer_kobj );
     if(buffer_kobj != NULL)
     {
@@ -1019,8 +1019,8 @@ uio_pci_dma_free(struct kobject *kobj)
     if( !(priv=container_of(kobj, struct uio_pci_dma_private, kobj)) )
     { UIO_PDA_ERROR("Getting container failed!\n", exit); }
 
-    char kobj_name[1024];
-    strncpy(kobj_name, kobject_name(kobj), 1024);
+    char kobj_name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
+    strncpy(kobj_name, kobject_name(kobj), UIO_PCI_DMA_BUFFER_NAME_SIZE);
     printk(DRIVER_NAME " : Freeing buffer %s\n", kobj_name);
 
 #ifdef UIO_PDA_IOMMU

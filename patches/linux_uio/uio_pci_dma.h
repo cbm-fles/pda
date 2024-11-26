@@ -54,6 +54,8 @@
 #define UIO_PCI_DMA_SUCCESS 0
 #define UIO_PCI_DMA_ERROR   -1
 
+#define UIO_PCI_DMA_BUFFER_NAME_SIZE 128
+
 #define MB_SIZE 1048576
 
 #ifndef __KERNEL__
@@ -87,7 +89,7 @@ struct
 __attribute__((__packed__))
 uio_pci_dma_private
 {
-    char       name[1024];
+    char       name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
     size_t     size;
     int32_t    numa_node;
     uint64_t   start;

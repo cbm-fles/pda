@@ -484,7 +484,7 @@ DMABuffer_requestMemory
         #endif /* NUMA_AVAIL */
     };
 
-    snprintf(request.name, 1024, "%s", buffer->internal->name);
+    snprintf(request.name, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", buffer->internal->name);
 
     buffer->internal->alloc_fd =
         pda_spinOpen
