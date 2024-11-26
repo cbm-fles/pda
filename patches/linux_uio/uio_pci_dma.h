@@ -283,10 +283,12 @@ struct scatter
 /** Attribute callback definitions */
 BIN_ATTR_READ_CALLBACK( mps );
 BIN_ATTR_READ_CALLBACK( readrq );
+BIN_ATTR_READ_CALLBACK( mock );
 
 BIN_ATTR_WRITE_CALLBACK( request_buffer_write );
 BIN_ATTR_WRITE_CALLBACK( delete_buffer_write );
 
+BIN_ATTR_MAP_CALLBACK( bar_mmap );
 BIN_ATTR_MAP_CALLBACK( map );
 BIN_ATTR_MAP_CALLBACK( map_sg );
 
