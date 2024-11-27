@@ -35,11 +35,6 @@
  *
  */
 
-
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-
 #include <linux/device.h>
 #include <linux/kobject.h>
 #include <linux/module.h>
@@ -53,8 +48,6 @@
 #include <asm/cacheflush.h>
 #include <linux/vmalloc.h>
 
-
-#pragma GCC diagnostic pop
 
 //#define UIO_PDA_DEBUG
 //#define UIO_PDA_DEBUG_SG
