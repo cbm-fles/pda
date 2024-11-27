@@ -1018,7 +1018,7 @@ uio_pci_dma_free(struct kobject *kobj)
     { UIO_PDA_ERROR("Getting container failed!\n", exit); }
 
     char kobj_name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
-    strncpy(kobj_name, kobject_name(kobj), UIO_PCI_DMA_BUFFER_NAME_SIZE);
+    snprintf(kobj_name, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", kobject_name(kobj));
     printk(DRIVER_NAME " : Freeing buffer %s\n", kobj_name);
 
 #ifdef UIO_PDA_IOMMU
