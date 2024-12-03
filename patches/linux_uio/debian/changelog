@@ -1,4 +1,11 @@
-pda-kernel-dkms (0.10.0-1) UNRELEASED; urgency=medium
+pda-kernel-dkms (0.11.0-1) noble; urgency=medium
+
+  * Bugfix: correctly initialize kernel memory
+  * Minor cleanup
+
+ -- Dirk Hutter  <hutter@compeng.uni-frankfurt.de>  Tue, 03 Dec 2024 16:06:03 +0100
+
+pda-kernel-dkms (0.10.0-1) noble; urgency=medium
 
   * Updates for Kernel 6.8
 

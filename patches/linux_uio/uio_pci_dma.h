@@ -48,11 +48,13 @@
 #define LINUX_VERSION_CODE KERNEL_VERSION(2,6,35)
 */
 
-#define UIO_PCI_DMA_VERSION "0.10.0"
+#define UIO_PCI_DMA_VERSION "0.11.0"
 #define UIO_PCI_DMA_MINOR   "0"
 
 #define UIO_PCI_DMA_SUCCESS 0
 #define UIO_PCI_DMA_ERROR   -1
+
+#define UIO_PCI_DMA_BUFFER_NAME_SIZE 128
 
 #define MB_SIZE 1048576
 
@@ -87,7 +89,7 @@ struct
 __attribute__((__packed__))
 uio_pci_dma_private
 {
-    char       name[1024];
+    char       name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
     size_t     size;
     int32_t    numa_node;
     uint64_t   start;
@@ -281,10 +283,12 @@ struct scatter
 /** Attribute callback definitions */
 BIN_ATTR_READ_CALLBACK( mps );
 BIN_ATTR_READ_CALLBACK( readrq );
+BIN_ATTR_READ_CALLBACK( mock );
 
 BIN_ATTR_WRITE_CALLBACK( request_buffer_write );
 BIN_ATTR_WRITE_CALLBACK( delete_buffer_write );
 
+BIN_ATTR_MAP_CALLBACK( bar_mmap );
 BIN_ATTR_MAP_CALLBACK( map );
 BIN_ATTR_MAP_CALLBACK( map_sg );
 

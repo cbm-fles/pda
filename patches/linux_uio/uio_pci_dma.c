@@ -35,11 +35,6 @@
  *
  */
 
-
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wall"
-
 #include <linux/device.h>
 #include <linux/kobject.h>
 #include <linux/module.h>
@@ -53,10 +48,6 @@
 #include <asm/cacheflush.h>
 #include <linux/vmalloc.h>
 
-
-#pragma GCC diagnostic pop
-#pragma GCC diagnostic ignored "-Wdeclaration-after-statement"
-#pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
 //#define UIO_PDA_DEBUG
 //#define UIO_PDA_DEBUG_SG
@@ -483,7 +474,8 @@ remove(struct pci_dev *pci_device)
 
 
 static const struct pci_device_id id_table[] = {
-    {PCI_DEVICE(0x10dc, 0x01a0) }, /* C-RORC PCI ID as registered at CERN */
+    {PCI_DEVICE(0x10dc, 0x0033) }, /* CERN C-RORC PCI ID */
+    {PCI_DEVICE(0x10dc, 0x0034) }, /* CERN CRU PCI ID */
     {PCI_DEVICE(0x10dc, 0xbeaf) }, /* FLIB intermediate PCI ID */
     {PCI_DEVICE(0x10ee, 0xf1e5) }, /* CRI FLIM */
     { 0, }
@@ -981,12 +973,12 @@ BIN_ATTR_WRITE_CALLBACK( delete_buffer_write )
     spin_lock(&alloc_free_lock);
 
     struct bin_attribute attrib;
-    char                 tmp_string[count+1];
+    char                 tmp_string[UIO_PCI_DMA_BUFFER_NAME_SIZE];
     struct kset         *kset_pointer = to_kset(kobj);
     struct kobject      *buffer_kobj  = NULL;
     attrib.attr.name                  = "map";
 
-    snprintf(tmp_string, count, "%s", buffer);
+    snprintf(tmp_string, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", buffer);
     KSET_FIND( kset_pointer, tmp_string, buffer_kobj );
     if(buffer_kobj != NULL)
     {
@@ -1019,8 +1011,8 @@ uio_pci_dma_free(struct kobject *kobj)
     if( !(priv=container_of(kobj, struct uio_pci_dma_private, kobj)) )
     { UIO_PDA_ERROR("Getting container failed!\n", exit); }
 
-    char kobj_name[1024];
-    strncpy(kobj_name, kobject_name(kobj), 1024);
+    char kobj_name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
+    snprintf(kobj_name, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", kobject_name(kobj));
     printk(DRIVER_NAME " : Freeing buffer %s\n", kobj_name);
 
 #ifdef UIO_PDA_IOMMU

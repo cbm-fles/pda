@@ -28,7 +28,10 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -yq build-essential debhelper dh-dkms dkms devscripts linux-headers-`uname -r`
 
-    - name: Build
+    - name: Build module
+      run: make -C patches/linux_uio build
+
+    - name: Build .deb
       run: make deb
 
     - name: Upload
