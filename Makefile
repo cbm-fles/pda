@@ -72,10 +72,10 @@ clean:
 	find . -iname 'build_*' -exec make -C {} clean \;
 	rm -rf libpda*.tar.gz libpda*.rpm package/rpm/*.tar.gz
 	rm -rf pda_kadapter*.rpm
-	rm pda-kernel-dkms_*.deb
+	rm -rf pda-kernel-dkms_*.deb
 
 count: mrproper
-	wc -l `find . -iname '*.c' && find . -iname '*.h' && find . -iname '*.inc'`	
+	wc -l `find . -iname '*.c' && find . -iname '*.h' && find . -iname '*.inc'`
 
 doc:
 	doxygen doxyfile.in
