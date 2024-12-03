@@ -269,7 +269,7 @@ struct scatter
 
     #define BIN_ATTR_PDA(_name, _size, _mode, _read, _write, _mmap)                    \
     struct bin_attribute *attr_bin_ ## _name =                                         \
-        (struct bin_attribute*)kmalloc(sizeof(struct bin_attribute), GFP_KERNEL);      \
+        (struct bin_attribute*)kzalloc(sizeof(struct bin_attribute), GFP_KERNEL);      \
     attr_bin_ ## _name->attr.name = __stringify(_name);                                \
     attr_bin_ ## _name->attr.mode = _mode;                                             \
     attr_bin_ ## _name->size      = _size;                                             \
