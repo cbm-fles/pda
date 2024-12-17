@@ -89,7 +89,7 @@ struct
 __attribute__((__packed__))
 uio_pci_dma_private
 {
-    char       name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
+    char       name[1024];
     size_t     size;
     int32_t    numa_node;
     uint64_t   start;
