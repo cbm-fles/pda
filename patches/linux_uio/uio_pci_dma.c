@@ -71,7 +71,8 @@ struct uio_pci_dma_device
     bool                  msi_enabled;
 };
 
-spinlock_t alloc_free_lock;
+DEFINE_MUTEX(alloc_free_lock);
+
 static inline int
 uio_pci_dma_allocate_kernel_memory(struct uio_pci_dma_private *priv);
 
@@ -255,7 +256,7 @@ probe
     struct kset               *kset;
     bool                       msi_enabled = false;
 
-    spin_lock_init(&alloc_free_lock);
+    mutex_init(&alloc_free_lock);
 
     /* attr_bin_request */
     BIN_ATTR_PDA(request, sizeof(struct uio_pci_dma_private), S_IWUSR | S_IWGRP,
@@ -525,7 +526,7 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
     if(count != sizeof(struct uio_pci_dma_private) )
     { UIO_PDA_ERROR("Invalid size of request struct -> aborting!\n", exit); }
 
-    spin_lock(&alloc_free_lock);
+    mutex_lock(&alloc_free_lock);
 
     UIO_DEBUG_PRINTF("MB = %zu are requested\n", (request->size/MB_SIZE) );
 
@@ -589,7 +590,7 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
 
     kobject_uevent(&priv->kobj, KOBJ_ADD);
 
-    spin_unlock(&alloc_free_lock);
+    mutex_unlock(&alloc_free_lock);
 
     UIO_DEBUG_RETURN(sizeof(struct uio_pci_dma_private));
 
@@ -616,7 +617,7 @@ exit:
         priv = NULL;
     }
 
-    spin_unlock(&alloc_free_lock);
+    mutex_unlock(&alloc_free_lock);
 
     UIO_DEBUG_RETURN(-1);
 }
@@ -970,7 +971,7 @@ BIN_ATTR_WRITE_CALLBACK( delete_buffer_write )
 {
     UIO_DEBUG_ENTER();
 
-    spin_lock(&alloc_free_lock);
+    mutex_lock(&alloc_free_lock);
 
     struct bin_attribute attrib;
     char                 tmp_string[UIO_PCI_DMA_BUFFER_NAME_SIZE];
@@ -994,7 +995,7 @@ BIN_ATTR_WRITE_CALLBACK( delete_buffer_write )
     else
     { printk(DRIVER_NAME " : freeing of buffer %s failed!\n", tmp_string); }
 
-    spin_unlock(&alloc_free_lock);
+    mutex_unlock(&alloc_free_lock);
 
     UIO_DEBUG_RETURN(count);
 }
