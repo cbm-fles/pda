@@ -1,3 +1,9 @@
+pda-kernel-dkms (0.12.0-1) noble; urgency=medium
+
+  * Bugfix: avoid scheduling while atomic
+
+ -- Dirk Hutter <hutter@compeng.uni-frankfurt.de>  Fri, 07 Feb 2025 11:23:28 +0100
+
 pda-kernel-dkms (0.11.0-1) noble; urgency=medium
 
   * Bugfix: correctly initialize kernel memory
