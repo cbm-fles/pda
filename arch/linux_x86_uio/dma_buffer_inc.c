@@ -863,7 +863,16 @@ DMABuffer_free
             }
 
             if(munlock(buffer->map, buffer->length) != 0)
-            { ERROR_EXIT( errno, exit, "Buffer unlocking failed!\n" ); }
+            {
+                #ifdef PDA_SKIP_UNLOCK_FAILURE
+		    #pragma message "*** Compiling with PDA_SKIP_UNLOCK_FAILURE"
+                    // report, but continue with release procedure even if unlock fails
+                    ERROR( errno, "Buffer unlocking failed! (but releasing)\n" );
+		    if(0) { goto exit; } // fake use of exit label to avoid compiler warning
+                #else
+                    ERROR_EXIT( errno, exit, "Buffer unlocking failed!\n" );
+                #endif
+            }
 
             buffer->map = MAP_FAILED;
             persistant  = PDA_DELETE;
