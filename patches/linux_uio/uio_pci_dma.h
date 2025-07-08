@@ -325,10 +325,9 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  **/
 #ifdef RHEL_RELEASE_CODE
   #if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9, 6)
-    #define RHEL_FIX_KERNEL_202505
+    #define RHEL_RELEASE_9_6
   #endif
 #endif
-
 
 /**
  * Kernel 4.6 introduced six-argument get_user_pages()
@@ -341,7 +340,7 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  * Kernel 6.5 removes unused vmas parameter from get_user_pages()
  * https://github.com/torvalds/linux/commit/54d020692b342f7bd02d7f5795fb5c401caecfcc
  **/
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0) || defined(RHEL_FIX_KERNEL_202505)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0) || defined(RHEL_RELEASE_9_6)
 #define PDA_FOURARG_GUP
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0)
 #define PDA_FIVEARG_GUP
@@ -356,7 +355,7 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  * Kernel 6.8 renames MAX_ORDER to MAX_PAGE_ORDER
  * https://github.com/torvalds/linux/commit/5e0a760b44417f7cadd79de2204d6247109558a0
  **/
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) || defined(RHEL_FIX_KERNEL_202505)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0) || defined(RHEL_RELEASE_9_6)
 #define PDA_MAX_PAGE_ORDER_RENAMED
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 4, 0)
 #define PDA_MAX_PAGE_ORDER_INCLUSIVE
