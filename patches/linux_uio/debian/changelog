@@ -1,3 +1,9 @@
+pda-kernel-dkms (0.13.0-1) noble; urgency=medium
+
+  * Updates for RHEL 9.6
+
+ -- Dirk Hutter <hutter@compeng.uni-frankfurt.de>  Fri, 08 Jul 2025 14:16:28 +0200
+
 pda-kernel-dkms (0.12.0-1) noble; urgency=medium
 
   * Bugfix: avoid scheduling while atomic
