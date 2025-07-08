@@ -62,6 +62,7 @@ MODPROBE_MODE="#define MODPROBE_MODE"
 PREFIX="/usr"
 DEBUG=""
 NUMA="true"
+EXTRA_DEFINES=""
 
 
 help()
@@ -73,6 +74,7 @@ help()
     echo "    --debug=<true|false>"
     echo "    --numa=<true|false>"
     echo "    --modprobe=<true|false>"
+    echo "    --extra=<additional defines, comma separated>"
 }
 
 
@@ -119,6 +121,11 @@ do
             fi
             continue
 	;;
+
+        "--extra" )
+	    EXTRA_DEFINES=$VALUE
+            continue
+        ;;
 
         *          )
             echo "Unknown parameter $PARAMETER!"
@@ -233,6 +240,12 @@ gen_config()
     echo "$KMOD_AVAIL"                         >> $BUILD_PATH/src/config.h
     echo "$NUMA_AVAIL"                         >> $BUILD_PATH/src/config.h
     echo "$MODPROBE_MODE"                      >> $BUILD_PATH/src/config.h
+
+    for DEF in ${EXTRA_DEFINES//,/ }
+    do
+      echo "#define $DEF"                      >> $BUILD_PATH/src/config.h
+    done
+
     echo "#endif  /* CONFIG_H */"              >> $BUILD_PATH/src/config.h
 }
 
