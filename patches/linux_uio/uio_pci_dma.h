@@ -279,6 +279,8 @@ struct scatter
     attr_bin_ ## _name->write     = _write;                                            \
     attr_bin_ ## _name->mmap      = _mmap;
 
+    // TODO we may want to use sysfs_bin_attr_init here
+    // https://github.com/torvalds/linux/commit/35960258ed388cdcebdb71df35fd5126978ca325
 
 /** Attribute callback definitions */
 BIN_ATTR_READ_CALLBACK( mps );
@@ -304,7 +306,7 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  * kernel 3.10.0-514.6.1.el7.x86_64
  * 
  * Kernel 6.17 removes the pnf_t functionality again.
- * https://github.com/torvalds/linux/commit/21aa65bf82a78c1e70447a45a85e533689b7f1a7#diff-1fef936fb34a99d0df1c4faac7b752fccafbcfef57e11c5bf518f7e19d1f4dfe
+ * https://github.com/torvalds/linux/commit/21aa65bf82a78c1e70447a45a85e533689b7f1a7
  **/
 #if defined(RHEL_RELEASE_CODE)
 #if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(7, 3)
