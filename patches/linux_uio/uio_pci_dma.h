@@ -172,7 +172,35 @@ struct scatter
     #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
     #define BIN_ATTR_CONST_MMAP
     #endif
+    #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
+    #define BIN_ATTR_CONST_RDWR
+    #endif
 
+    #if defined(BIN_ATTR_CONST_RDWR)
+    #define BIN_ATTR_WRITE_CALLBACK( name )                                            \
+    ssize_t                                                                            \
+    uio_pci_dma_sysfs_ ## name                                                         \
+    (                                                                                  \
+        struct file                *file,                                              \
+        struct kobject             *kobj,                                              \
+        const struct bin_attribute *attr,                                              \
+        char                       *buffer,                                            \
+        loff_t                      offset,                                            \
+        size_t                      count                                              \
+    )
+
+    #define BIN_ATTR_READ_CALLBACK( name )                                             \
+    ssize_t                                                                            \
+    uio_pci_dma_sysfs_ ## name                                                         \
+    (                                                                                  \
+        struct file                *file,                                              \
+        struct kobject             *kobj,                                              \
+        const struct bin_attribute *attr,                                              \
+        char                       *buffer,                                            \
+        loff_t                      offset,                                            \
+        size_t                      count                                              \
+    )
+    #else
     #define BIN_ATTR_WRITE_CALLBACK( name )                                            \
     ssize_t                                                                            \
     uio_pci_dma_sysfs_ ## name                                                         \
@@ -196,6 +224,7 @@ struct scatter
         loff_t                offset,                                                  \
         size_t                count                                                    \
     )
+    #endif
 
     #if defined(BIN_ATTR_CONST_MMAP)
     #define BIN_ATTR_MAP_CALLBACK( name )                                              \
