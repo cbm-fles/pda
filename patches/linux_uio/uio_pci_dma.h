@@ -161,7 +161,18 @@ struct scatter
     )
     #endif
 
+
     #if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34)
+/**
+ * Kernel versions >= 6.13 constifies 'struct bin_attribute' mmap callback
+ * https://github.com/torvalds/linux/commit/94a20fb9af16417ab5fd17bcde3d906926f15ef6
+ * Kernel versions >= 6.16 constifies 'struct bin_attribute' read/write callbacks
+ * https://github.com/torvalds/linux/commit/97d06802d10a2827ef46fd31789a26117ce7f3d9
+ */
+    #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
+    #define BIN_ATTR_CONST_MMAP
+    #endif
+
     #define BIN_ATTR_WRITE_CALLBACK( name )                                            \
     ssize_t                                                                            \
     uio_pci_dma_sysfs_ ## name                                                         \
@@ -186,6 +197,17 @@ struct scatter
         size_t                count                                                    \
     )
 
+    #if defined(BIN_ATTR_CONST_MMAP)
+    #define BIN_ATTR_MAP_CALLBACK( name )                                              \
+    int                                                                                \
+    uio_pci_dma_sysfs_ ## name                                                         \
+    (                                                                                  \
+        struct file                *file,                                              \
+        struct kobject             *kobj,                                              \
+        const struct bin_attribute *attr,                                              \
+        struct vm_area_struct      *vma                                                \
+    )
+    #else
     #define BIN_ATTR_MAP_CALLBACK( name )                                              \
     int                                                                                \
     uio_pci_dma_sysfs_ ## name                                                         \
@@ -195,6 +217,8 @@ struct scatter
         struct bin_attribute  *attr,                                                   \
         struct vm_area_struct *vma                                                     \
     )
+    #endif
+
     #endif
 
 /** Kernel versions <= 2.6.31 don't have certain defines for PCI config space
