@@ -302,6 +302,9 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
  * https://lwn.net/Articles/672457/
  * These changes are back-ported at least into CentOS 7.3,
  * kernel 3.10.0-514.6.1.el7.x86_64
+ * 
+ * Kernel 6.17 removes the pnf_t functionality again.
+ * https://github.com/torvalds/linux/commit/21aa65bf82a78c1e70447a45a85e533689b7f1a7#diff-1fef936fb34a99d0df1c4faac7b752fccafbcfef57e11c5bf518f7e19d1f4dfe
  **/
 #if defined(RHEL_RELEASE_CODE)
 #if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(7, 3)
@@ -309,7 +312,7 @@ BIN_ATTR_MAP_CALLBACK( map_sg );
 #endif
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 #define PDA_PFN_T_PAGES
 #endif
 
