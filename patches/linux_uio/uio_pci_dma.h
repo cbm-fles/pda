@@ -174,11 +174,14 @@ struct scatter
     #if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(10, 1)
         #define RHEL_RELEASE_10_1
     #endif
+    #if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(10, 2)
+        #define RHEL_RELEASE_10_2
+    #endif
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0) || defined(RHEL_RELEASE_10_1)
     #define BIN_ATTR_CONST_MMAP
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0) || defined(RHEL_RELEASE_10_2)
     #define BIN_ATTR_CONST_RDWR
 #endif
 
