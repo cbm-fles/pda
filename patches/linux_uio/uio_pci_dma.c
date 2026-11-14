@@ -295,7 +295,9 @@ probe
     bool                       msi_enabled = false;
 
     /* attr_bin_request */
-    BIN_ATTR_PDA(request, sizeof(struct uio_pci_dma_private), S_IWUSR | S_IWGRP,
+    /* Userspace uses placeholder kobject types with different sizes.
+     * Zero permits the complete userspace write instead of truncating it. */
+    BIN_ATTR_PDA(request, 0, S_IWUSR | S_IWGRP,
                  NULL, uio_pci_dma_sysfs_request_buffer_write, NULL);
 
     /* attr_bin_free */
@@ -591,8 +593,9 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
     bool                        allocated = false;
     bool                        kobj_initialized = false;
 
-    /* Invalid requests must not unlock a mutex that was never locked. */
-    if(offset != 0 || count != sizeof(*request) ||
+    /* Only the fields before kobj are transferred from userspace.
+     * The userspace structure has different placeholder kobject sizes. */
+    if(offset != 0 || count < offsetof(struct uio_pci_dma_private, kobj) ||
        !memchr(request->name, '\0', sizeof(request->name)))
         return -EINVAL;
 
@@ -679,7 +682,7 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
 
     mutex_unlock(&alloc_free_lock);
 
-    UIO_DEBUG_RETURN(sizeof(struct uio_pci_dma_private));
+    UIO_DEBUG_RETURN(count);
 
 exit_binfile:
     pda_remove_buffer_files(&priv->kobj);
