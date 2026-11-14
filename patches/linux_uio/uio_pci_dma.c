@@ -39,7 +39,6 @@
 #include <linux/kobject.h>
 #include <linux/module.h>
 #include <linux/pci.h>
-#include <linux/sort.h>
 #include <linux/sysfs.h>
 #include <linux/uio_driver.h>
 #include <linux/version.h>
@@ -47,6 +46,9 @@
 #include <linux/smp.h>
 #include <asm/cacheflush.h>
 #include <linux/vmalloc.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+#include <linux/mmap_lock.h>
+#endif
 
 
 //#define UIO_PDA_DEBUG
@@ -67,9 +69,53 @@ struct uio_pci_dma_device
     struct uio_info       info;
     struct pci_dev       *pdev;
     struct kobject       *dma_kobj;
+    struct bin_attribute *attr_request;
+    struct bin_attribute *attr_free;
+    struct bin_attribute *attr_max_payload_size;
+    struct bin_attribute *attr_max_read_request_size;
     struct bin_attribute  attr_bar[PCI_NUM_RESOURCES];
     bool                  msi_enabled;
 };
+
+/* Keep the sysfs attributes alive until they have been removed. */
+struct uio_pci_dma_buffer
+{
+    struct uio_pci_dma_private priv;
+    /* Original CPU-side segments: dma_map_sg() may merge/modify priv.sg. */
+    struct scatterlist *cpu_sg;
+    struct bin_attribute map_attr;
+    struct bin_attribute sg_attr;
+    bool map_created;
+    bool sg_created;
+};
+
+static struct uio_pci_dma_buffer *pda_buffer_from_kobj(struct kobject *kobj)
+{
+    struct uio_pci_dma_private *priv =
+        container_of(kobj, struct uio_pci_dma_private, kobj);
+    return container_of(priv, struct uio_pci_dma_buffer, priv);
+}
+
+static void pda_buffer_release(struct kobject *kobj)
+{
+    kfree(pda_buffer_from_kobj(kobj));
+}
+
+static void pda_remove_buffer_files(struct kobject *kobj)
+{
+    struct uio_pci_dma_buffer *buf = pda_buffer_from_kobj(kobj);
+
+    if(buf->sg_created)
+    {
+        sysfs_remove_bin_file(kobj, &buf->sg_attr);
+        buf->sg_created = false;
+    }
+    if(buf->map_created)
+    {
+        sysfs_remove_bin_file(kobj, &buf->map_attr);
+        buf->map_created = false;
+    }
+}
 
 DEFINE_MUTEX(alloc_free_lock);
 
@@ -81,12 +127,6 @@ uio_pci_dma_allocate_user_memory(struct uio_pci_dma_private *priv);
 
 static inline int
 convert_sg(struct uio_pci_dma_private* priv);
-
-int
-sort_sg_compare(const void *item1, const void *item2);
-
-void
-sort_sg_swap(void *item1, void *item2, int size);
 
 static inline int
 uio_pci_dma_free(struct kobject *kobj);
@@ -256,10 +296,10 @@ probe
     struct kset               *kset;
     bool                       msi_enabled = false;
 
-    mutex_init(&alloc_free_lock);
-
     /* attr_bin_request */
-    BIN_ATTR_PDA(request, sizeof(struct uio_pci_dma_private), S_IWUSR | S_IWGRP,
+    /* Userspace uses placeholder kobject types with different sizes.
+     * Zero permits the complete userspace write instead of truncating it. */
+    BIN_ATTR_PDA(request, 0, S_IWUSR | S_IWGRP,
                  NULL, uio_pci_dma_sysfs_request_buffer_write, NULL);
 
     /* attr_bin_free */
@@ -303,6 +343,10 @@ probe
 
     dma_device->pdev           = pci_device;
     dma_device->msi_enabled    = msi_enabled;
+    dma_device->attr_request   = attr_bin_request;
+    dma_device->attr_free      = attr_bin_free;
+    dma_device->attr_max_payload_size = attr_bin_max_payload_size;
+    dma_device->attr_max_read_request_size = attr_bin_max_read_request_size;
 
     dma_device->info.name      = DRIVER_NAME;
     dma_device->info.version   = UIO_PCI_DMA_VERSION;
@@ -317,6 +361,11 @@ probe
 
     UIO_DEBUG_PRINTF("Generate a new sysfs folder\n");
     kset                 = kset_create_and_add("dma", NULL, &pci_device->dev.kobj);
+    if(!kset)
+    {
+        err = -ENOMEM;
+        goto exit;
+    }
     dma_kobj             = &kset->kobj;
     dma_device->dma_kobj = dma_kobj;
 
@@ -408,7 +457,7 @@ exit:
     { kfree(dma_device); }
 
     if(dma_kobj)
-    { kobject_del(dma_kobj); }
+    { kset_unregister(to_kset(dma_kobj)); }
 
     if(msi_enabled)
     { pci_disable_msi(pci_device); }
@@ -438,17 +487,39 @@ remove(struct pci_dev *pci_device)
     struct kobject            *kobj       = dma_device->dma_kobj;
     struct kobject            *k          = NULL;
 
-    /* Remove all allocated DMA buffers */
     struct kset *kset = to_kset(kobj);
-    spin_lock( &kset->list_lock );
-    {
-        list_for_each_entry(k, &kset->list, entry)
-        { uio_pci_dma_free(k); }
-    }
-    spin_unlock( &kset->list_lock );
 
-    kobject_del(dma_device->dma_kobj);
+    /* Prevent new requests, and wait for active request/free callbacks. */
+    sysfs_remove_bin_file(kobj, dma_device->attr_request);
+    sysfs_remove_bin_file(kobj, dma_device->attr_free);
+
+    mutex_lock(&alloc_free_lock);
+    for(;;)
+    {
+        /* Hold a reference while freeing, never the kset spinlock. */
+        spin_lock(&kset->list_lock);
+        if(list_empty(&kset->list))
+        {
+            spin_unlock(&kset->list_lock);
+            break;
+        }
+        k = list_first_entry(&kset->list, struct kobject, entry);
+        kobject_get(k);
+        spin_unlock(&kset->list_lock);
+
+        uio_pci_dma_free(k);
+        kobject_put(k); /* Temporary reference from this loop. */
+    }
+    mutex_unlock(&alloc_free_lock);
+
+    /* Remove the remaining attributes before freeing their descriptors. */
+    sysfs_remove_bin_file(kobj, dma_device->attr_max_payload_size);
+    sysfs_remove_bin_file(kobj, dma_device->attr_max_read_request_size);
     kset_unregister(kset);
+    kfree(dma_device->attr_request);
+    kfree(dma_device->attr_free);
+    kfree(dma_device->attr_max_payload_size);
+    kfree(dma_device->attr_max_read_request_size);
 
     /* Remove memory regions */
     uint32_t i = 0;
@@ -519,35 +590,38 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
     UIO_DEBUG_ENTER();
     struct uio_pci_dma_private *request = (struct uio_pci_dma_private*)buffer;
     struct kset                *kset    = container_of(kobj, struct kset, kobj);
+    struct uio_pci_dma_buffer  *buf     = NULL;
     struct uio_pci_dma_private *priv    = NULL;
-    struct bin_attribute        attrib;
+    bool                        allocated = false;
+    bool                        kobj_initialized = false;
 
-    /* Check that really a request struct is passed */
-    if(count != sizeof(struct uio_pci_dma_private) )
-    { UIO_PDA_ERROR("Invalid size of request struct -> aborting!\n", exit); }
+    /* Only the fields before kobj are transferred from userspace.
+     * The userspace structure has different placeholder kobject sizes. */
+    if(offset != 0 || count < offsetof(struct uio_pci_dma_private, kobj) ||
+       !memchr(request->name, '\0', sizeof(request->name)))
+        return -EINVAL;
 
     mutex_lock(&alloc_free_lock);
 
     UIO_DEBUG_PRINTF("MB = %zu are requested\n", (request->size/MB_SIZE) );
 
     /* Allocate and initialize internal bookkeeping */
-    priv = kzalloc(sizeof(struct uio_pci_dma_private), GFP_KERNEL);
-    if(!priv)
+    buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+    if(!buf)
     { UIO_PDA_ERROR("Allocation failed!\n", exit); }
-    memcpy(priv, buffer, count);
+    priv = &buf->priv;
+    /* Never copy kobject, function pointers or kernel addresses from userspace. */
+    memcpy(priv, buffer, offsetof(struct uio_pci_dma_private, kobj));
 
     priv->device = container_of(kobj->parent, struct device, kobj);
-
-    kobject_init(&priv->kobj, &priv->type);
 
     struct kobject *tmp_kobj = NULL;
     KSET_FIND(kset, request->name, tmp_kobj);
     if(tmp_kobj != NULL)
-    { UIO_PDA_ERROR("Buffer already exists!\n", exit); }
-
-    priv->kobj.kset = kset;
-    if(kobject_add(&priv->kobj, NULL, request->name))
-    { UIO_PDA_ERROR("Can't create buffer object!\n", exit); }
+    {
+        kobject_put(tmp_kobj);
+        UIO_PDA_ERROR("Buffer already exists!\n", exit);
+    }
 
     /* First try to allocate the memory */
     priv->buffer    = NULL;
@@ -566,54 +640,75 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
         if(uio_pci_dma_allocate_user_memory(priv)   != UIO_PCI_DMA_SUCCESS)
         { UIO_PDA_ERROR( "User space DMA buffer allocation failed!\n", exit); }
     }
+    allocated = true;
+
+    /* Publish the kobject only after the allocation has succeeded. */
+    priv->type.release = pda_buffer_release;
+    kobject_init(&priv->kobj, &priv->type);
+    kobj_initialized = true;
+    priv->kobj.kset = kset;
+    if(kobject_add(&priv->kobj, NULL, "%s", priv->name))
+    { UIO_PDA_ERROR("Can't create buffer object!\n", exit); }
 
     UIO_DEBUG_PRINTF("init priv pointer %p\n", priv);
 
-    /* Define and allocate the struct attr_bin_map */
-    BIN_ATTR_PDA(map, priv->size, S_IWUGO | S_IRUGO, uio_pci_dma_sysfs_mock,
-                 uio_pci_dma_sysfs_mock, uio_pci_dma_sysfs_map);
+    /* These attributes belong to the buffer; no separate allocation. */
+    buf->map_attr.attr.name = "map";
+    buf->map_attr.attr.mode = S_IWUGO | S_IRUGO;
+    buf->map_attr.size = priv->size;
+    buf->map_attr.read = uio_pci_dma_sysfs_mock;
+    buf->map_attr.write = uio_pci_dma_sysfs_mock;
+    buf->map_attr.mmap = uio_pci_dma_sysfs_map;
 
-    /* Define and allocate the struct attr_bin_sg */
-    BIN_ATTR_PDA(sg, (priv->length * sizeof(struct scatter) ), S_IRUGO,
-                 uio_pci_dma_sysfs_mock, uio_pci_dma_sysfs_mock, uio_pci_dma_sysfs_map_sg);
+    buf->sg_attr.attr.name = "sg";
+    buf->sg_attr.attr.mode = S_IRUGO;
+    buf->sg_attr.size = priv->length * sizeof(struct scatter);
+    buf->sg_attr.read = uio_pci_dma_sysfs_mock;
+    buf->sg_attr.write = uio_pci_dma_sysfs_mock;
+    buf->sg_attr.mmap = uio_pci_dma_sysfs_map_sg;
 
     UIO_DEBUG_PRINTF("uio_pci_dma_request_buffer_write size %llu\n",
         (priv->length * sizeof(struct scatterlist) ) );
 
     /* Add entry for memory mapping of the DMA buffer */
-    if(sysfs_create_bin_file(&priv->kobj, attr_bin_map))
+    if(sysfs_create_bin_file(&priv->kobj, &buf->map_attr))
     { UIO_PDA_ERROR("Can't create entry for buffer mapping!\n", exit_binfile); }
+    buf->map_created = true;
 
     /* Add entry to expose the sg-list of the DMA buffer */
-    if(sysfs_create_bin_file(&priv->kobj, attr_bin_sg))
+    if(sysfs_create_bin_file(&priv->kobj, &buf->sg_attr))
     { UIO_PDA_ERROR("Can't create entry for sg list exposing!\n", exit_binfile); }
+    buf->sg_created = true;
 
     kobject_uevent(&priv->kobj, KOBJ_ADD);
 
     mutex_unlock(&alloc_free_lock);
 
-    UIO_DEBUG_RETURN(sizeof(struct uio_pci_dma_private));
+    UIO_DEBUG_RETURN(count);
 
 exit_binfile:
-    attrib.attr.name = "map";
-    sysfs_remove_bin_file(&priv->kobj, &attrib);
-
-    attrib.attr.name = "sg";
-    sysfs_remove_bin_file(&priv->kobj, &attrib);
-
+    pda_remove_buffer_files(&priv->kobj);
     kobject_del(&priv->kobj);
-
-    if(attr_bin_sg)
-    { kfree(attr_bin_sg);  }
-
-    if(attr_bin_map)
-    { kfree(attr_bin_map); }
 
 exit:
     if(priv)
     {
+        if(allocated)
+        {
+#ifdef UIO_PDA_IOMMU
+            if(priv->old_length)
+                dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
+            if(priv->start == 0)
+                uio_pci_dma_free_kernel_memory(priv);
+            else
+                uio_pci_dma_free_user_memory(priv);
+        }
         free_memory_lists(priv);
-        kfree(priv);
+        if(kobj_initialized)
+            kobject_put(&priv->kobj); /* Calls pda_buffer_release(). */
+        else
+            kfree(buf);
         priv = NULL;
     }
 
@@ -629,6 +724,9 @@ free_memory_lists(struct uio_pci_dma_private *priv)
 
     if(priv != NULL)
     {
+        struct uio_pci_dma_buffer *buf =
+            container_of(priv, struct uio_pci_dma_buffer, priv);
+
         if(priv->page_list != NULL)
         {
             UIO_DEBUG_PRINTF("Freeing priv->page_list\n");
@@ -642,6 +740,10 @@ free_memory_lists(struct uio_pci_dma_private *priv)
             vfree(priv->pfn_list);
             priv->pfn_list = NULL;
         }
+
+        /* The DMA API is allowed to rewrite priv->sg during mapping. */
+        vfree(buf->cpu_sg);
+        buf->cpu_sg = NULL;
 
         if(priv->sg != NULL)
         {
@@ -666,7 +768,24 @@ program_iommu(struct uio_pci_dma_private* priv)
 {
 #ifdef UIO_PDA_IOMMU
     UIO_DEBUG_ENTER()
-    uint64_t count = dma_map_sg(priv->device, priv->sg, priv->length, DMA_BIDIRECTIONAL);
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    uint64_t i;
+    int count;
+
+    /* Keep the original physical segments separate from the DMA mapping.
+     * An IOMMU may merge segments or overwrite SG mapping information. */
+    if(priv->length > INT_MAX)
+        UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
+    buf->cpu_sg = vmalloc(priv->length * sizeof(*buf->cpu_sg));
+    if(!buf->cpu_sg)
+        UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
+    sg_init_table(buf->cpu_sg, priv->length);
+    for(i = 0; i < priv->length; i++)
+        sg_set_page(&buf->cpu_sg[i], sg_page(&priv->sg[i]),
+                    priv->sg[i].length, priv->sg[i].offset);
+
+    count = dma_map_sg(priv->device, priv->sg, priv->length, DMA_BIDIRECTIONAL);
     if(count == 0)
     {
         UIO_DEBUG_PRINTF("Mapping SG list failed!\n");
@@ -686,6 +805,7 @@ uio_pci_dma_allocate_user_memory
 )
 {
     UIO_DEBUG_ENTER();
+    int pages_mapped = 0;
 
     if( (priv->size) < 1)
     { UIO_PDA_ERROR("Zero amount of pages requested!\n", exit); }
@@ -718,26 +838,38 @@ uio_pci_dma_allocate_user_memory
     #endif
 
     UIO_DEBUG_PRINTF("Get user pages\n");
+    /* get_user_pages() requires the mmap lock (unlike its _unlocked variant). */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+    mmap_read_lock(current->mm);
+#else
+    down_read(&current->mm->mmap_sem);
+#endif
 #if defined(PDA_FOURARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, FOLL_WRITE, priv->page_list);
 #elif defined(PDA_FIVEARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, FOLL_WRITE, priv->page_list, NULL);
 #elif defined(PDA_SIXARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, 1, 0, priv->page_list, NULL);
 #else
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (current, current->mm, priv->start, pages, 1, 0, priv->page_list, NULL);
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+    mmap_read_unlock(current->mm);
+#else
+    up_read(&current->mm->mmap_sem);
+#endif
     if(pages_mapped != pages)
     {
-        UIO_DEBUG_PRINTF("pages_mapped = %d pages = %d\n", pages_mapped, pages);
+        printk(KERN_ERR DRIVER_NAME " : get_user_pages returned %d of %d pages\n",
+               pages_mapped, pages);
         UIO_PDA_ERROR("User page translation failed!\n", exit)
     }
 
@@ -769,6 +901,18 @@ uio_pci_dma_allocate_user_memory
     UIO_DEBUG_RETURN(UIO_PCI_DMA_SUCCESS);
 
 exit:
+#ifdef UIO_PDA_IOMMU
+    if(priv->old_length)
+        dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
+    /* A partial GUP success must be undone, too. */
+    if(pages_mapped > 0)
+    {
+        int i;
+        for(i = 0; i < pages_mapped; i++)
+            put_page(priv->page_list[i]);
+    }
+    free_memory_lists(priv);
     UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
 }
 
@@ -885,9 +1029,9 @@ uio_pci_dma_allocate_kernel_memory
     if(program_iommu(priv) == UIO_PCI_DMA_ERROR)
     { UIO_PDA_ERROR("SG list conversion failed!\n", exit); }
 
+    /* Do not reorder entries after dma_map_sg(): the original list is
+     * required by dma_unmap_sg() and by the CPU-side buffer mapping. */
     UIO_DEBUG_SG( "Scatter:\n", (priv->sg), priv->length );
-    sort(priv->sg, priv->length, sizeof(struct scatterlist), sort_sg_compare, sort_sg_swap);
-    UIO_DEBUG_SG( "Sorted Scatter:\n", (priv->sg), priv->length );
 
     if(convert_sg(priv) != UIO_PCI_DMA_SUCCESS)
     { UIO_PDA_ERROR("SG list conversion failed!\n", exit); }
@@ -903,17 +1047,17 @@ uio_pci_dma_allocate_kernel_memory
         if(!priv->pfn_list)
         { UIO_PDA_ERROR("Page list allocation failed!\n", exit); }
 
+        /* The page-fault handler needs original CPU PFNs, not DMA segments. */
+        struct uio_pci_dma_buffer *buf =
+            container_of(priv, struct uio_pci_dma_buffer, priv);
+        struct scatterlist *cpu_sg = buf->cpu_sg ? buf->cpu_sg : priv->sg;
+        uint64_t nents = priv->old_length ? priv->old_length : priv->length;
         uint64_t page_index = 0;
         uint64_t j, i;
-        for(i = 0; i < priv->length; i++)
+        for(i = 0; i < nents; i++)
         {
-            struct page *page = sg_page(&(priv->sg[i]));
-            uint64_t sg_size  =
-            #ifdef UIO_PDA_IOMMU
-                sg_dma_len(&(priv->sg[i]));
-            #else
-                priv->sg[i].length;
-            #endif
+            struct page *page = sg_page(&cpu_sg[i]);
+            uint64_t sg_size = cpu_sg[i].length;
 
             uint64_t pages = sg_size >> PAGE_SHIFT;
             for(j=0; j<pages; j++)
@@ -929,39 +1073,13 @@ uio_pci_dma_allocate_kernel_memory
     UIO_DEBUG_RETURN(UIO_PCI_DMA_SUCCESS);
 
 exit:
+#ifdef UIO_PDA_IOMMU
+    if(priv->old_length)
+        dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
     uio_pci_dma_free_kernel_memory(priv);
     UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
 }
-
-int
-sort_sg_compare
-(
-    const void *item1,
-    const void *item2
-)
-{
-    struct scatterlist *sg1 = (struct scatterlist*)item1;
-    struct scatterlist *sg2 = (struct scatterlist*)item2;
-
-    return( (sg1->dma_address > sg2->dma_address) ? 1 : -1 );
-}
-
-void
-sort_sg_swap
-(
-    void *item1,
-    void *item2,
-    int   size
-)
-{
-    struct scatterlist sg_tmp;
-
-    memcpy(&sg_tmp, item1, sizeof(struct scatterlist) );
-    memcpy(item1, item2, sizeof(struct scatterlist)   );
-    memcpy(item2, &sg_tmp, sizeof(struct scatterlist) );
-}
-
-
 
 /*! \brief uio_pci_dma_delete_buffer_write
  *         Callback function that gets called when someone pipes a string
@@ -973,24 +1091,23 @@ BIN_ATTR_WRITE_CALLBACK( delete_buffer_write )
 
     mutex_lock(&alloc_free_lock);
 
-    struct bin_attribute attrib;
     char                 tmp_string[UIO_PCI_DMA_BUFFER_NAME_SIZE];
     struct kset         *kset_pointer = to_kset(kobj);
     struct kobject      *buffer_kobj  = NULL;
-    attrib.attr.name                  = "map";
-
-    snprintf(tmp_string, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", buffer);
+    size_t len = min(count, sizeof(tmp_string) - 1);
+    if(offset != 0 || count == 0)
+    {
+        mutex_unlock(&alloc_free_lock);
+        return -EINVAL;
+    }
+    memcpy(tmp_string, buffer, len);
+    tmp_string[len] = '\0';
+    strim(tmp_string);
     KSET_FIND( kset_pointer, tmp_string, buffer_kobj );
     if(buffer_kobj != NULL)
     {
-        attrib.attr.name = "map";
-        sysfs_remove_bin_file(buffer_kobj, &attrib);
-
-        attrib.attr.name = "sg";
-        sysfs_remove_bin_file(buffer_kobj, &attrib);
-
         uio_pci_dma_free(buffer_kobj);
-        kobject_del(buffer_kobj);
+        kobject_put(buffer_kobj); /* Reference acquired by KSET_FIND. */
     }
     else
     { printk(DRIVER_NAME " : freeing of buffer %s failed!\n", tmp_string); }
@@ -1012,33 +1129,27 @@ uio_pci_dma_free(struct kobject *kobj)
     if( !(priv=container_of(kobj, struct uio_pci_dma_private, kobj)) )
     { UIO_PDA_ERROR("Getting container failed!\n", exit); }
 
-    char kobj_name[UIO_PCI_DMA_BUFFER_NAME_SIZE];
-    snprintf(kobj_name, UIO_PCI_DMA_BUFFER_NAME_SIZE, "%s", kobject_name(kobj));
-    printk(DRIVER_NAME " : Freeing buffer %s\n", kobj_name);
+    printk(DRIVER_NAME " : Freeing buffer %s\n", kobject_name(kobj));
+
+    /* Wait for ongoing sysfs operations before releasing their storage. */
+    pda_remove_buffer_files(kobj);
 
 #ifdef UIO_PDA_IOMMU
-    if(!priv->sg)
-    { UIO_PDA_ERROR("This is no valid scatter gather list!\n", exit); }
-
-    if(priv->device)
+    if(priv->sg && priv->device)
     { dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL); }
 #endif
 
-    if(priv->start == 0)
+    if(priv->sg)
     {
-        if(uio_pci_dma_free_kernel_memory(priv) != UIO_PCI_DMA_SUCCESS)
-        { UIO_PDA_ERROR("Freeing failed!\n", exit);   }
-    } else {
-        if(uio_pci_dma_free_user_memory(priv) != UIO_PCI_DMA_SUCCESS)
-        { UIO_PDA_ERROR("Releasing failed!\n", exit); }
+        if(priv->start == 0)
+            uio_pci_dma_free_kernel_memory(priv);
+        else
+            uio_pci_dma_free_user_memory(priv);
     }
+    free_memory_lists(priv);
 
-    if(priv)
-    {
-        free_memory_lists(priv);
-        kfree(priv);
-    }
-
+    kobject_del(kobj);
+    kobject_put(kobj); /* Initial reference from kobject_init(). */
     UIO_DEBUG_RETURN(UIO_PCI_DMA_SUCCESS);
 
 exit:
@@ -1062,9 +1173,13 @@ uio_pci_dma_free_kernel_memory(struct uio_pci_dma_private *priv)
 {
     UIO_DEBUG_ENTER();
 
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    struct scatterlist *cpu_sg = buf->cpu_sg ? buf->cpu_sg : priv->sg;
+    uint64_t nents = priv->old_length ? priv->old_length : priv->length;
     uint64_t            i   = 0;
     struct scatterlist *sgp = NULL;
-    for_each_sg(priv->sg, sgp, priv->length, i)
+    for_each_sg(cpu_sg, sgp, nents, i)
     {
         size_t       chunk_length = sgp->length;
         struct page *page         = sg_page(sgp);
@@ -1155,17 +1270,15 @@ BIN_ATTR_MAP_CALLBACK( map )
     vma->vm_page_prot                = pgprot_noncached(vma->vm_page_prot);
     uint64_t            request_size = (vma->vm_end - vma->vm_start);
     size_t              buffer_size  = priv->size;
-    struct scatterlist *sgp          = priv->sg;
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    struct scatterlist *sgp = buf->cpu_sg ? buf->cpu_sg : priv->sg;
     size_t              mapped_size  = 0;
     for(mapped_size = 0; mapped_size<request_size; )
     {
         unsigned long pfn = page_to_pfn( sg_page(sgp) );
-        uint64_t sg_size  =
-        #ifdef UIO_PDA_IOMMU
-            sg_dma_len(sgp);
-        #else
-            sgp->length;
-        #endif
+        /* CPU PFNs follow the original SG lengths, not merged DMA lengths. */
+        uint64_t sg_size = sgp->length;
         if( (ret = remap_pfn_range(vma, start, pfn, sg_size, vma->vm_page_prot)) < 0)
         { ret = UIO_PCI_DMA_ERROR; UIO_PDA_ERROR("Buffer mapping failed!\n", exit); }
 
