@@ -81,6 +81,8 @@ struct uio_pci_dma_device
 struct uio_pci_dma_buffer
 {
     struct uio_pci_dma_private priv;
+    /* Original CPU-side segments: dma_map_sg() may merge/modify priv.sg. */
+    struct scatterlist *cpu_sg;
     struct bin_attribute map_attr;
     struct bin_attribute sg_attr;
     bool map_created;
@@ -722,6 +724,9 @@ free_memory_lists(struct uio_pci_dma_private *priv)
 
     if(priv != NULL)
     {
+        struct uio_pci_dma_buffer *buf =
+            container_of(priv, struct uio_pci_dma_buffer, priv);
+
         if(priv->page_list != NULL)
         {
             UIO_DEBUG_PRINTF("Freeing priv->page_list\n");
@@ -735,6 +740,10 @@ free_memory_lists(struct uio_pci_dma_private *priv)
             vfree(priv->pfn_list);
             priv->pfn_list = NULL;
         }
+
+        /* The DMA API is allowed to rewrite priv->sg during mapping. */
+        vfree(buf->cpu_sg);
+        buf->cpu_sg = NULL;
 
         if(priv->sg != NULL)
         {
@@ -759,7 +768,24 @@ program_iommu(struct uio_pci_dma_private* priv)
 {
 #ifdef UIO_PDA_IOMMU
     UIO_DEBUG_ENTER()
-    uint64_t count = dma_map_sg(priv->device, priv->sg, priv->length, DMA_BIDIRECTIONAL);
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    uint64_t i;
+    int count;
+
+    /* Keep the original physical segments separate from the DMA mapping.
+     * An IOMMU may merge segments or overwrite SG mapping information. */
+    if(priv->length > INT_MAX)
+        UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
+    buf->cpu_sg = vmalloc(priv->length * sizeof(*buf->cpu_sg));
+    if(!buf->cpu_sg)
+        UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
+    sg_init_table(buf->cpu_sg, priv->length);
+    for(i = 0; i < priv->length; i++)
+        sg_set_page(&buf->cpu_sg[i], sg_page(&priv->sg[i]),
+                    priv->sg[i].length, priv->sg[i].offset);
+
+    count = dma_map_sg(priv->device, priv->sg, priv->length, DMA_BIDIRECTIONAL);
     if(count == 0)
     {
         UIO_DEBUG_PRINTF("Mapping SG list failed!\n");
@@ -1021,17 +1047,17 @@ uio_pci_dma_allocate_kernel_memory
         if(!priv->pfn_list)
         { UIO_PDA_ERROR("Page list allocation failed!\n", exit); }
 
+        /* The page-fault handler needs original CPU PFNs, not DMA segments. */
+        struct uio_pci_dma_buffer *buf =
+            container_of(priv, struct uio_pci_dma_buffer, priv);
+        struct scatterlist *cpu_sg = buf->cpu_sg ? buf->cpu_sg : priv->sg;
+        uint64_t nents = priv->old_length ? priv->old_length : priv->length;
         uint64_t page_index = 0;
         uint64_t j, i;
-        for(i = 0; i < priv->length; i++)
+        for(i = 0; i < nents; i++)
         {
-            struct page *page = sg_page(&(priv->sg[i]));
-            uint64_t sg_size  =
-            #ifdef UIO_PDA_IOMMU
-                sg_dma_len(&(priv->sg[i]));
-            #else
-                priv->sg[i].length;
-            #endif
+            struct page *page = sg_page(&cpu_sg[i]);
+            uint64_t sg_size = cpu_sg[i].length;
 
             uint64_t pages = sg_size >> PAGE_SHIFT;
             for(j=0; j<pages; j++)
@@ -1047,6 +1073,10 @@ uio_pci_dma_allocate_kernel_memory
     UIO_DEBUG_RETURN(UIO_PCI_DMA_SUCCESS);
 
 exit:
+#ifdef UIO_PDA_IOMMU
+    if(priv->old_length)
+        dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
     uio_pci_dma_free_kernel_memory(priv);
     UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
 }
@@ -1143,9 +1173,13 @@ uio_pci_dma_free_kernel_memory(struct uio_pci_dma_private *priv)
 {
     UIO_DEBUG_ENTER();
 
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    struct scatterlist *cpu_sg = buf->cpu_sg ? buf->cpu_sg : priv->sg;
+    uint64_t nents = priv->old_length ? priv->old_length : priv->length;
     uint64_t            i   = 0;
     struct scatterlist *sgp = NULL;
-    for_each_sg(priv->sg, sgp, priv->length, i)
+    for_each_sg(cpu_sg, sgp, nents, i)
     {
         size_t       chunk_length = sgp->length;
         struct page *page         = sg_page(sgp);
@@ -1236,17 +1270,15 @@ BIN_ATTR_MAP_CALLBACK( map )
     vma->vm_page_prot                = pgprot_noncached(vma->vm_page_prot);
     uint64_t            request_size = (vma->vm_end - vma->vm_start);
     size_t              buffer_size  = priv->size;
-    struct scatterlist *sgp          = priv->sg;
+    struct uio_pci_dma_buffer *buf =
+        container_of(priv, struct uio_pci_dma_buffer, priv);
+    struct scatterlist *sgp = buf->cpu_sg ? buf->cpu_sg : priv->sg;
     size_t              mapped_size  = 0;
     for(mapped_size = 0; mapped_size<request_size; )
     {
         unsigned long pfn = page_to_pfn( sg_page(sgp) );
-        uint64_t sg_size  =
-        #ifdef UIO_PDA_IOMMU
-            sg_dma_len(sgp);
-        #else
-            sgp->length;
-        #endif
+        /* CPU PFNs follow the original SG lengths, not merged DMA lengths. */
+        uint64_t sg_size = sgp->length;
         if( (ret = remap_pfn_range(vma, start, pfn, sg_size, vma->vm_page_prot)) < 0)
         { ret = UIO_PCI_DMA_ERROR; UIO_PDA_ERROR("Buffer mapping failed!\n", exit); }
 
