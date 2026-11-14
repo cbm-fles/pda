@@ -39,7 +39,6 @@
 #include <linux/kobject.h>
 #include <linux/module.h>
 #include <linux/pci.h>
-#include <linux/sort.h>
 #include <linux/sysfs.h>
 #include <linux/uio_driver.h>
 #include <linux/version.h>
@@ -126,12 +125,6 @@ uio_pci_dma_allocate_user_memory(struct uio_pci_dma_private *priv);
 
 static inline int
 convert_sg(struct uio_pci_dma_private* priv);
-
-int
-sort_sg_compare(const void *item1, const void *item2);
-
-void
-sort_sg_swap(void *item1, void *item2, int size);
 
 static inline int
 uio_pci_dma_free(struct kobject *kobj);
@@ -1007,9 +1000,9 @@ uio_pci_dma_allocate_kernel_memory
     if(program_iommu(priv) == UIO_PCI_DMA_ERROR)
     { UIO_PDA_ERROR("SG list conversion failed!\n", exit); }
 
+    /* Do not reorder entries after dma_map_sg(): the original list is
+     * required by dma_unmap_sg() and by the CPU-side buffer mapping. */
     UIO_DEBUG_SG( "Scatter:\n", (priv->sg), priv->length );
-    sort(priv->sg, priv->length, sizeof(struct scatterlist), sort_sg_compare, sort_sg_swap);
-    UIO_DEBUG_SG( "Sorted Scatter:\n", (priv->sg), priv->length );
 
     if(convert_sg(priv) != UIO_PCI_DMA_SUCCESS)
     { UIO_PDA_ERROR("SG list conversion failed!\n", exit); }
@@ -1054,36 +1047,6 @@ exit:
     uio_pci_dma_free_kernel_memory(priv);
     UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
 }
-
-int
-sort_sg_compare
-(
-    const void *item1,
-    const void *item2
-)
-{
-    struct scatterlist *sg1 = (struct scatterlist*)item1;
-    struct scatterlist *sg2 = (struct scatterlist*)item2;
-
-    return( (sg1->dma_address > sg2->dma_address) ? 1 : -1 );
-}
-
-void
-sort_sg_swap
-(
-    void *item1,
-    void *item2,
-    int   size
-)
-{
-    struct scatterlist sg_tmp;
-
-    memcpy(&sg_tmp, item1, sizeof(struct scatterlist) );
-    memcpy(item1, item2, sizeof(struct scatterlist)   );
-    memcpy(item2, &sg_tmp, sizeof(struct scatterlist) );
-}
-
-
 
 /*! \brief uio_pci_dma_delete_buffer_write
  *         Callback function that gets called when someone pipes a string
