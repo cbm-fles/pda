@@ -47,6 +47,9 @@
 #include <linux/smp.h>
 #include <asm/cacheflush.h>
 #include <linux/vmalloc.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+#include <linux/mmap_lock.h>
+#endif
 
 
 //#define UIO_PDA_DEBUG
@@ -686,6 +689,7 @@ uio_pci_dma_allocate_user_memory
 )
 {
     UIO_DEBUG_ENTER();
+    int pages_mapped = 0;
 
     if( (priv->size) < 1)
     { UIO_PDA_ERROR("Zero amount of pages requested!\n", exit); }
@@ -718,26 +722,38 @@ uio_pci_dma_allocate_user_memory
     #endif
 
     UIO_DEBUG_PRINTF("Get user pages\n");
+    /* get_user_pages() requires the mmap lock (unlike its _unlocked variant). */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+    mmap_read_lock(current->mm);
+#else
+    down_read(&current->mm->mmap_sem);
+#endif
 #if defined(PDA_FOURARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, FOLL_WRITE, priv->page_list);
 #elif defined(PDA_FIVEARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, FOLL_WRITE, priv->page_list, NULL);
 #elif defined(PDA_SIXARG_GUP)
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (priv->start, pages, 1, 0, priv->page_list, NULL);
 #else
-    int pages_mapped
+    pages_mapped
         = get_user_pages
             (current, current->mm, priv->start, pages, 1, 0, priv->page_list, NULL);
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+    mmap_read_unlock(current->mm);
+#else
+    up_read(&current->mm->mmap_sem);
+#endif
     if(pages_mapped != pages)
     {
-        UIO_DEBUG_PRINTF("pages_mapped = %d pages = %d\n", pages_mapped, pages);
+        printk(KERN_ERR DRIVER_NAME " : get_user_pages returned %d of %d pages\n",
+               pages_mapped, pages);
         UIO_PDA_ERROR("User page translation failed!\n", exit)
     }
 
@@ -769,6 +785,18 @@ uio_pci_dma_allocate_user_memory
     UIO_DEBUG_RETURN(UIO_PCI_DMA_SUCCESS);
 
 exit:
+#ifdef UIO_PDA_IOMMU
+    if(priv->old_length)
+        dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
+    /* A partial GUP success must be undone, too. */
+    if(pages_mapped > 0)
+    {
+        int i;
+        for(i = 0; i < pages_mapped; i++)
+            put_page(priv->page_list[i]);
+    }
+    free_memory_lists(priv);
     UIO_DEBUG_RETURN(UIO_PCI_DMA_ERROR);
 }
 
