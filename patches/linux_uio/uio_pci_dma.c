@@ -524,10 +524,12 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
     struct kset                *kset    = container_of(kobj, struct kset, kobj);
     struct uio_pci_dma_private *priv    = NULL;
     struct bin_attribute        attrib;
+    bool                        allocated = false;
 
-    /* Check that really a request struct is passed */
-    if(count != sizeof(struct uio_pci_dma_private) )
-    { UIO_PDA_ERROR("Invalid size of request struct -> aborting!\n", exit); }
+    /* Invalid requests must not unlock a mutex that was never locked. */
+    if(offset != 0 || count != sizeof(*request) ||
+       !memchr(request->name, '\0', sizeof(request->name)))
+        return -EINVAL;
 
     mutex_lock(&alloc_free_lock);
 
@@ -537,20 +539,18 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
     priv = kzalloc(sizeof(struct uio_pci_dma_private), GFP_KERNEL);
     if(!priv)
     { UIO_PDA_ERROR("Allocation failed!\n", exit); }
-    memcpy(priv, buffer, count);
+    /* Never copy kobject, function pointers or kernel addresses from userspace. */
+    memcpy(priv, buffer, offsetof(struct uio_pci_dma_private, kobj));
 
     priv->device = container_of(kobj->parent, struct device, kobj);
-
-    kobject_init(&priv->kobj, &priv->type);
 
     struct kobject *tmp_kobj = NULL;
     KSET_FIND(kset, request->name, tmp_kobj);
     if(tmp_kobj != NULL)
-    { UIO_PDA_ERROR("Buffer already exists!\n", exit); }
-
-    priv->kobj.kset = kset;
-    if(kobject_add(&priv->kobj, NULL, request->name))
-    { UIO_PDA_ERROR("Can't create buffer object!\n", exit); }
+    {
+        kobject_put(tmp_kobj);
+        UIO_PDA_ERROR("Buffer already exists!\n", exit);
+    }
 
     /* First try to allocate the memory */
     priv->buffer    = NULL;
@@ -569,6 +569,13 @@ BIN_ATTR_WRITE_CALLBACK( request_buffer_write )
         if(uio_pci_dma_allocate_user_memory(priv)   != UIO_PCI_DMA_SUCCESS)
         { UIO_PDA_ERROR( "User space DMA buffer allocation failed!\n", exit); }
     }
+    allocated = true;
+
+    /* Publish the kobject only after the allocation has succeeded. */
+    kobject_init(&priv->kobj, &priv->type);
+    priv->kobj.kset = kset;
+    if(kobject_add(&priv->kobj, NULL, "%s", priv->name))
+    { UIO_PDA_ERROR("Can't create buffer object!\n", exit); }
 
     UIO_DEBUG_PRINTF("init priv pointer %p\n", priv);
 
@@ -615,6 +622,17 @@ exit_binfile:
 exit:
     if(priv)
     {
+        if(allocated)
+        {
+#ifdef UIO_PDA_IOMMU
+            if(priv->old_length)
+                dma_unmap_sg(priv->device, priv->sg, priv->old_length, DMA_BIDIRECTIONAL);
+#endif
+            if(priv->start == 0)
+                uio_pci_dma_free_kernel_memory(priv);
+            else
+                uio_pci_dma_free_user_memory(priv);
+        }
         free_memory_lists(priv);
         kfree(priv);
         priv = NULL;
